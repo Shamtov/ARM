@@ -9,6 +9,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -40,8 +41,8 @@ public class BusStopScene {
         column1.setCellValueFactory(new PropertyValueFactory<>("number"));
 
         TableColumn column2 = new TableColumn("Название остановки");
-        column2.setMinWidth(300);
-        column2.setCellValueFactory(new PropertyValueFactory<>("name"));
+        column2.setMinWidth(350);
+        column2.setCellValueFactory(new PropertyValueFactory<>("stopName"));
 
         TableColumn column3 = new TableColumn("Долгота");
         column3.setMinWidth(100);
@@ -60,6 +61,7 @@ public class BusStopScene {
         column6.setCellValueFactory(new PropertyValueFactory<>("control"));
         //Add columns to the table
         table.getColumns().addAll(column1, column2, column3, column4, column5, column6);
+        table.setTableMenuButtonVisible(true);
         PreparedStatement pst = null;
         ResultSet rs = null;
         con = Connect.getConnect();
@@ -88,6 +90,7 @@ public class BusStopScene {
             // Close database connection
             try {
                 con.close();
+                System.out.println("Connection closed");
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -101,10 +104,14 @@ public class BusStopScene {
         HBox hbox = new HBox(20);
         hbox.getChildren().addAll(add, edit, delete);
         hbox.setPadding(new Insets(20, 10, 10, 10));
-        VBox vbox = new VBox(20);
-        vbox.getChildren().addAll(table, hbox);
+        StackPane stackPane = new StackPane();
+        stackPane.getChildren().addAll(table);
+        VBox root = new VBox(20);
+        root.getChildren().addAll(hbox, stackPane);
+
+
         // New window (Scene)
-        Scene dirStopsScene = new Scene(vbox, 900, 900);
+        Scene dirStopsScene = new Scene(root, 800, 500);
         dirStopsStage.setScene(dirStopsScene);
         dirStopsStage.show();
     }

@@ -17,7 +17,7 @@ public class Connect {
         } catch (SQLException except) {
             except.printStackTrace();
         }
-        System.out.println("Успешное подключене");
+        System.out.println("Connection success");
         return con;
     }
 //        public void close(){
