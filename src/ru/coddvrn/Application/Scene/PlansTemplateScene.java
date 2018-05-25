@@ -4,6 +4,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.coddvrn.Application.Connection.Connect;
 
 public class PlansTemplateScene {
     public static void display(){
@@ -16,6 +17,10 @@ public class PlansTemplateScene {
         StackPane root = new StackPane();
         Scene planTemplateScene = new Scene(root,900,900);
         planTemplateStage.setScene(planTemplateScene);
+        Connect con = new Connect();
+        // Setup database connection
+//        con.getConnect();
+        // Close database connection
         planTemplateStage.show();
     }
 

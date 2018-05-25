@@ -1,5 +1,6 @@
 package ru.coddvrn.Application.MenuItem;
 import ru.coddvrn.Application.Alerts.ConfirmBox;
+import ru.coddvrn.Application.Scene.BusStopScene;
 import ru.coddvrn.Application.Scene.DispReleaseScene;
 import ru.coddvrn.Application.Scene.PlanScene;
 import ru.coddvrn.Application.Scene.PlansTemplateScene;
@@ -42,6 +43,7 @@ public class ApplicationMenu {
         MenuItem routeAssignmentItem = new MenuItem("Назначение маршрута");
 
         MenuItem directoryOfStopsItem = new MenuItem("Справочник остановок");
+        directoryOfStopsItem.setOnAction(event -> BusStopScene.display());
         MenuItem directoryOfRoutesItem = new MenuItem("Справочник маршрутов");
         MenuItem directoryOfObjectsItem = new MenuItem("Справочник объектов");
         MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
