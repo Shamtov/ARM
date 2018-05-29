@@ -8,7 +8,7 @@ import ru.coddvrn.Application.Connection.Connect;
 
 import java.sql.Connection;
 
-public class DispReleaseScene {
+public class DispRelease {
     public static void display() {
         // New window (Stage)
         Stage dispReleaseStage = new Stage();

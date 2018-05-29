@@ -12,14 +12,14 @@ import javafx.stage.Stage;
 
 public class ConfirmBox {
 
-        public static void display(String title, String message){
+        public static void display(){
             Stage exitWindow = new Stage();
             exitWindow.initModality(Modality.APPLICATION_MODAL);
-            exitWindow.setTitle(title);
+            exitWindow.setTitle("Подтверждение");
 
             Label label = new Label();
             label.setFont(Font.font(14));
-            label.setText(message);
+            label.setText("Вы уверены что хотите завершить работу с ARM?");
 
             //Create two buttons
             Button yesButton = new Button("Да");

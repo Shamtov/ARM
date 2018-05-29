@@ -6,22 +6,23 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
 
-public class PlansTemplateScene {
+public class Plan {
     public static void display(){
         // New window (Stage)
-        Stage planTemplateStage = new Stage();
-        planTemplateStage.initModality(Modality.WINDOW_MODAL);
-        planTemplateStage.setTitle("Шаблоны планов");
+        Stage planStage = new Stage();
+        planStage.initModality(Modality.WINDOW_MODAL);
+        planStage.setTitle("План");
 
-        // New scene (scene)
+        // New window (Scene)
         StackPane root = new StackPane();
-        Scene planTemplateScene = new Scene(root,900,900);
-        planTemplateStage.setScene(planTemplateScene);
+        Scene planScene = new Scene(root,900,900);
+        planStage.setScene(planScene);
         Connect con = new Connect();
         // Setup database connection
 //        con.getConnect();
         // Close database connection
-        planTemplateStage.show();
+//        con.close();
+        planStage.show();
     }
 
 }

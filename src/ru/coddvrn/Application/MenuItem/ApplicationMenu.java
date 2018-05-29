@@ -1,9 +1,9 @@
 package ru.coddvrn.Application.MenuItem;
 import ru.coddvrn.Application.Alerts.ConfirmBox;
-import ru.coddvrn.Application.Scene.BusStopScene;
-import ru.coddvrn.Application.Scene.DispReleaseScene;
-import ru.coddvrn.Application.Scene.PlanScene;
-import ru.coddvrn.Application.Scene.PlansTemplateScene;
+import ru.coddvrn.Application.Scene.BusStop;
+import ru.coddvrn.Application.Scene.DispRelease;
+import ru.coddvrn.Application.Scene.Plan;
+import ru.coddvrn.Application.Scene.PlansTemplate;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -30,20 +30,20 @@ public class ApplicationMenu {
         // Create MenuItems
         MenuItem planItem = new MenuItem("Планы");
         planItem.setOnAction(event -> {
-            PlanScene.display();
+            Plan.display();
         });
         MenuItem plansTemplateItem = new MenuItem("Шаблоны планов");
         plansTemplateItem.setOnAction(event -> {
-            PlansTemplateScene.display();
+            PlansTemplate.display();
         });
         MenuItem releaseRouteItem = new MenuItem("Выпуск ТС на маршруты по факту");
         releaseRouteItem.setOnAction(event -> {
-        DispReleaseScene.display();
+        DispRelease.display();
         });
         MenuItem routeAssignmentItem = new MenuItem("Назначение маршрута");
 
         MenuItem directoryOfStopsItem = new MenuItem("Справочник остановок");
-        directoryOfStopsItem.setOnAction(event -> BusStopScene.display());
+        directoryOfStopsItem.setOnAction(event -> new BusStop().display());
         MenuItem directoryOfRoutesItem = new MenuItem("Справочник маршрутов");
         MenuItem directoryOfObjectsItem = new MenuItem("Справочник объектов");
         MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
@@ -58,7 +58,7 @@ public class ApplicationMenu {
         MenuItem exitItem = new MenuItem("Выход");
 
         exitItem.setOnAction(event -> {
-            ConfirmBox.display("Подтверждение", "Вы уверены что хотите завершить работу с ARM?");
+            ConfirmBox.display();
         });
 
         // Add menuItems to the Menus

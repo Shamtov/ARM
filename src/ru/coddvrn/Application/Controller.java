@@ -1,5 +1,6 @@
 package ru.coddvrn.Application;
 
+import ru.coddvrn.Application.Alerts.ConfirmBox;
 import ru.coddvrn.Application.MenuItem.ApplicationMenu;
 import javafx.application.Application;
 
@@ -15,10 +16,10 @@ public class Controller extends Application {
 
         BorderPane root = new BorderPane();
         root.setTop(ApplicationMenu.getMenu());
-//        root.setPadding(new Insets(15,20,10,10));
 
         Scene scene = new Scene(root, 600, 600);
-
+//        Разкомментировать в продакш
+//        stage.setOnCloseRequest(event -> ConfirmBox.display());
         stage.setTitle("АРМ МБУ " + "ЦОДД");
         stage.setScene(scene);
         stage.show();
