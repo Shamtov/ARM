@@ -1,9 +1,7 @@
 package ru.coddvrn.Application.MenuItem;
 import ru.coddvrn.Application.Alerts.ConfirmBox;
-import ru.coddvrn.Application.Scene.BusStop;
-import ru.coddvrn.Application.Scene.DispRelease;
-import ru.coddvrn.Application.Scene.Plan;
-import ru.coddvrn.Application.Scene.PlansTemplate;
+import ru.coddvrn.Application.Entity.RoutesTable;
+import ru.coddvrn.Application.Scene.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -24,7 +22,7 @@ public class ApplicationMenu {
         // SeparatorMenuItems
         SeparatorMenuItem separator = new SeparatorMenuItem();
         SeparatorMenuItem separator2 = new SeparatorMenuItem();
-        SeparatorMenuItem separator3 = new SeparatorMenuItem();
+//        SeparatorMenuItem separator3 = new SeparatorMenuItem();
         SeparatorMenuItem separator4 = new SeparatorMenuItem();
 
         // Create MenuItems
@@ -43,12 +41,13 @@ public class ApplicationMenu {
         MenuItem routeAssignmentItem = new MenuItem("Назначение маршрута");
 
         MenuItem directoryOfStopsItem = new MenuItem("Справочник остановок");
-        directoryOfStopsItem.setOnAction(event -> new BusStop().display());
+        directoryOfStopsItem.setOnAction(event ->  new BusStop().display());
         MenuItem directoryOfRoutesItem = new MenuItem("Справочник маршрутов");
+        directoryOfRoutesItem.setOnAction(event -> new Routes().display());
         MenuItem directoryOfObjectsItem = new MenuItem("Справочник объектов");
-        MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
-        MenuItem directoryOfCarriersItem = new MenuItem("Справочник перевозчиков");
-        MenuItem directoryOfContractsItem = new MenuItem("Справочник договоров");
+//        MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
+//        MenuItem directoryOfCarriersItem = new MenuItem("Справочник перевозчиков");
+//        MenuItem directoryOfContractsItem = new MenuItem("Справочник договоров");
         MenuItem directoryOfNavigationBlockItem = new MenuItem("Справочник навигационных блоков");
 
         MenuItem reportingControlItem = new MenuItem("Контроль выполнения отчетов");
@@ -64,7 +63,7 @@ public class ApplicationMenu {
         // Add menuItems to the Menus
         plansMenu.getItems().addAll(planItem, separator, plansTemplateItem);
         dispMenu.getItems().addAll(releaseRouteItem, routeAssignmentItem);
-        directoryMenu.getItems().addAll(directoryOfStopsItem, directoryOfRoutesItem, separator2, directoryOfObjectsItem, directoryOfVehicleModelsItem, separator3, directoryOfCarriersItem, directoryOfContractsItem, separator4, directoryOfNavigationBlockItem);
+        directoryMenu.getItems().addAll(directoryOfStopsItem, directoryOfRoutesItem, separator2, directoryOfObjectsItem, /*directoryOfVehicleModelsItem, separator3, directoryOfCarriersItem, directoryOfContractsItem,*/ separator4, directoryOfNavigationBlockItem);
         reportMenu.getItems().addAll(reportingControlItem);
         serviceMenu.getItems().addAll(objectOperationsLogItem);
         exitMenu.getItems().add(exitItem);

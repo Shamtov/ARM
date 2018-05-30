@@ -1,27 +1,34 @@
 package ru.coddvrn.Application.Scene;
 
-import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
-import ru.coddvrn.Application.Controller;
 import ru.coddvrn.Application.Entity.BusStopTable;
-import ru.coddvrn.Application.Scene.SubScene.SubBusStop;
+import ru.coddvrn.Application.Scene.SubScene.BusAdd;
+import ru.coddvrn.Application.Scene.SubScene.BusEdit;
 
-import javax.xml.transform.sax.SAXSource;
 import java.sql.*;
 import java.util.Optional;
 
-public class BusStop extends Controller {
+public class BusStop {
+    // Singleton
+    private static BusStop instance;
+
+    public static BusStop getInstance() {
+        if (instance == null)
+            instance = new BusStop();
+        return instance;
+    }
+
     // Create data Collection
     protected ObservableList<BusStopTable> data = FXCollections.observableArrayList();
     // Create table
@@ -29,34 +36,33 @@ public class BusStop extends Controller {
 
     private void initCol() {
         // Create table columns
-        TableColumn numberColumn = new TableColumn("Номер");
+        TableColumn idColumn = new TableColumn("ID остановки");
         //Initialize columns
-        numberColumn.setMinWidth(50);
-        numberColumn.setCellValueFactory(new PropertyValueFactory<>("number"));
+        idColumn.setMinWidth(50);
+        idColumn.setCellValueFactory(new PropertyValueFactory<BusStopTable, Integer>("id"));
 
-        TableColumn stopNameColumn = new TableColumn("Название остановки");
-        stopNameColumn.setMinWidth(350);
-        stopNameColumn.setCellValueFactory(new PropertyValueFactory<>("stopName"));
-
-        TableColumn longitudeColumn = new TableColumn("Долгота");
-        longitudeColumn.setMinWidth(100);
-        longitudeColumn.setCellValueFactory(new PropertyValueFactory<>("lon"));
+        TableColumn nameColumn = new TableColumn("Название остановки");
+        nameColumn.setMinWidth(350);
+        nameColumn.setCellValueFactory(new PropertyValueFactory<BusStopTable, String>("name"));
 
         TableColumn latitudeColumn = new TableColumn("Широта");
         latitudeColumn.setMinWidth(100);
-        latitudeColumn.setCellValueFactory(new PropertyValueFactory<>("lat"));
+        latitudeColumn.setCellValueFactory(new PropertyValueFactory<BusStopTable, Double>("lat"));
 
-        TableColumn routeIdColumn = new TableColumn("Маршрут ID");
-        routeIdColumn.setMinWidth(50);
-        routeIdColumn.setCellValueFactory(new PropertyValueFactory<>("route"));
+        TableColumn longitudeColumn = new TableColumn("Долгота");
+        longitudeColumn.setMinWidth(100);
+        longitudeColumn.setCellValueFactory(new PropertyValueFactory<BusStopTable, Double>("lon"));
 
-        TableColumn controlColumn = new TableColumn("Конечная");
-        controlColumn.setMinWidth(50);
-        controlColumn.setCellValueFactory(new PropertyValueFactory<>("control"));
+        TableColumn azmthColumn = new TableColumn("Азимут");
+        azmthColumn.setMinWidth(50);
+        azmthColumn.setCellValueFactory(new PropertyValueFactory<BusStopTable, Integer>("azmth"));
+
         //Add columns to the table
-        table.getColumns().addAll(numberColumn, stopNameColumn, longitudeColumn, latitudeColumn, routeIdColumn, controlColumn);
+        table.getColumns().addAll(idColumn, nameColumn, longitudeColumn, latitudeColumn, azmthColumn);
         table.setTableMenuButtonVisible(true);
+        table.setEditable(true);
     }
+
     public void display() {
         // New window (Stage)
         Stage dirStopsStage = new Stage();
@@ -64,7 +70,8 @@ public class BusStop extends Controller {
         dirStopsStage.setTitle("Справочник остановок");
         initCol();
         fillTable();
-        table.contextMenuProperty();
+        table.setItems(data);
+//        table.contextMenuProperty();
         // Add vertical and horizontal scrollPane
         ScrollPane sp = new ScrollPane(table);
         sp.setPrefSize(600, 200);
@@ -76,10 +83,30 @@ public class BusStop extends Controller {
         sp.setDisable(false);
         // Create buttons
         Button add = new Button("Новая запись...");
-        add.setOnAction(event -> new SubBusStop().display("Добавить остановку"));
+        add.setOnAction(event -> new BusAdd().display());
+
         Button edit = new Button("Изменить");
-        edit.setOnAction(event -> new SubBusStop().display("Изменить остановку"));
+        edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        edit.setOnAction(event -> new BusEdit().display(table.getSelectionModel().getSelectedItem().getId(),
+                table.getSelectionModel().getSelectedItem().getName(),
+                table.getSelectionModel().getSelectedItem().getLat(),
+                table.getSelectionModel().getSelectedItem().getLon(),
+                table.getSelectionModel().getSelectedItem().getAzmth()));
+
         Button delete = new Button("Удалить");
+        delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        delete.setOnAction(event -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Подтверждение");
+            alert.setHeaderText(null);
+            alert.setContentText("Вы действительно хотите удалить запись?");
+            Optional<ButtonType> action = alert.showAndWait();
+
+            if (action.get() == ButtonType.OK) {
+                deleteData(table.getSelectionModel().getSelectedItem().getId());
+                table.getItems().removeAll(table.getSelectionModel().getSelectedItem());
+            }
+        });
   /*      delete.setOnAction(e ->{
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Подтверждение");
@@ -96,9 +123,10 @@ public class BusStop extends Controller {
         hbox.setPadding(new Insets(20, 10, 10, 10));
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
-        VBox root = new VBox(20);
-        root.getChildren().addAll(hbox, stackPane);
-
+        stackPane.setPadding(new Insets(10,10,30,10));
+        BorderPane root = new BorderPane();
+        root.setTop(hbox);
+        root.setCenter(stackPane);
         // Set scene
         Scene dirStopsScene = new Scene(root, 800, 500);
         dirStopsStage.setScene(dirStopsScene);
@@ -106,81 +134,71 @@ public class BusStop extends Controller {
     }
 
     public void fillTable() {
-        System.out.println("fillTable");
-        final String query = "SELECT * FROM Bus_Stations";
+        final String query = "SELECT id ,name,lat,lon,azmth FROM bs";
         try (Connection connection = Connect.getConnect();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
             while (resultSet.next()) {
                 data.add(new BusStopTable(
-                        resultSet.getInt("number_"),
-                        resultSet.getString("name_"),
-                        resultSet.getDouble("lon_"),
-                        resultSet.getDouble("lat_"),
-                        resultSet.getInt("rout_"),
-                        resultSet.getShort("control_")
+                        resultSet.getInt("id"),
+                        resultSet.getString("name"),
+                        resultSet.getDouble("lat"),
+                        resultSet.getDouble("lon"),
+                        resultSet.getInt("azmth")
                 ));
             }
-
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
-        table.setItems(data);
+        this.table.setItems(data);
     }
 
-    public void addData(TextField numberText, TextField nameText, TextField lonText, TextField latText, TextField routeText, TextField controlText) {
-        final String query = "INSERT INTO Bus_Stations (number_,name_,lon_,lat_,rout_,control_) VALUES (?,?,?,?,?,?)";
+    public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
+        final String query = "INSERT INTO bs (name ,lat ,lon ,azmth ) VALUES (?,?,?,?)";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setInt(1, Integer.parseInt(numberText.getText()));
-            preparedStatement.setString(2, nameText.getText());
+            preparedStatement.setString(1, nameText.getText());
+            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
             preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setDouble(4, Double.parseDouble(latText.getText()));
-            preparedStatement.setInt(5, Integer.parseInt(routeText.getText()));
-            preparedStatement.setShort(6, Short.parseShort(controlText.getText()));
+            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
-        SubBusStop.clearFields(numberText, nameText, lonText, latText, routeText, controlText);
+        refreshTable();
+        new BusAdd().clearFields(nameText, lonText, latText, azmthText);
     }
-    public void updateData(TextField numberText, TextField nameText, TextField lonText, TextField latText, TextField routeText, TextField controlText) {
-        final String query = "Update Bus_Stations SET number_ = ? ,name_ = ? ,lon_ = ?,lat_ = ? ,rout_ = ? ,control_ = ? WHERE number_ = ? and name_ = ? and rout_ = ?";
+
+    protected void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
+        final String query = "UPDATE bs SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setInt(1, Integer.parseInt(numberText.getText()));
-            preparedStatement.setString(2, nameText.getText());
+            preparedStatement.setString(1, nameText.getText());
+            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
             preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setDouble(4, Double.parseDouble(latText.getText()));
-            preparedStatement.setInt(5, Integer.parseInt(routeText.getText()));
-            preparedStatement.setShort(6, Short.parseShort(controlText.getText()));
-            preparedStatement.setInt(7, Integer.parseInt(numberText.getText()));
-            preparedStatement.setString(8, nameText.getText());
-            preparedStatement.setInt(9, Integer.parseInt(routeText.getText()));
+            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
+            preparedStatement.setInt(5, idValue);
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
-        SubBusStop.clearFields(numberText, nameText, lonText, latText, routeText, controlText);
+        refreshTable();
     }
-    private void deleteData(TextField numberText, TextField nameText, TextField lonText, TextField latText, TextField routeText, TextField controlText){
-        final String query = "DELETE FROM Bus_Stations WHERE number_ = ? and name_ = ? and rout_ = ?";
+
+    private void deleteData(int idValue) {
+        final String query = "DELETE FROM bs WHERE id = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setInt(1, Integer.parseInt(numberText.getText()));
-            preparedStatement.setString(2, nameText.getText());
-            preparedStatement.setInt(3, Integer.parseInt(routeText.getText()));
+            preparedStatement.setInt(1, idValue);
             preparedStatement.executeUpdate();
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
+        refreshTable();
     }
 
     public void refreshTable() {
-        System.out.println(data.size()+" refresh");
         this.data.clear();
-        System.out.println(data.size()+" after clear");
         fillTable();
-        System.out.println(data.size()+" after fill");
     }
 }

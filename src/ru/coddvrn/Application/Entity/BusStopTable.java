@@ -5,40 +5,29 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class BusStopTable {
-    public int getNumber() {
-        return number.get();
+
+    public int getId() {
+        return id.get();
     }
 
-    public SimpleIntegerProperty numberProperty() {
-        return number;
+    public SimpleIntegerProperty idProperty() {
+        return id;
     }
 
-    public void setNumber(int number) {
-        this.number.set(number);
+    public void setId(int id) {
+        this.id.set(id);
     }
 
-    public String getStopName() {
-        return stopName.get();
+    public String getName() {
+        return name.get();
     }
 
-    public SimpleStringProperty stopNameProperty() {
-        return stopName;
+    public SimpleStringProperty nameProperty() {
+        return name;
     }
 
-    public void setStopName(String stopName) {
-        this.stopName.set(stopName);
-    }
-
-    public double getLon() {
-        return lon.get();
-    }
-
-    public SimpleDoubleProperty lonProperty() {
-        return lon;
-    }
-
-    public void setLon(double lon) {
-        this.lon.set(lon);
+    public void setName(String name) {
+        this.name.set(name);
     }
 
     public double getLat() {
@@ -53,44 +42,42 @@ public class BusStopTable {
         this.lat.set(lat);
     }
 
-    public int getRoute() {
-        return route.get();
+    public double getLon() {
+        return lon.get();
     }
 
-    public SimpleIntegerProperty routeProperty() {
-        return route;
+    public SimpleDoubleProperty lonProperty() {
+        return lon;
     }
 
-    public void setRoute(int route) {
-        this.route.set(route);
+    public void setLon(double lon) {
+        this.lon.set(lon);
     }
 
-    public int getControl() {
-        return control.get();
+    public int getAzmth() {
+        return azmth.get();
     }
 
-    public SimpleIntegerProperty controlProperty() {
-        return control;
+    public SimpleIntegerProperty azmthProperty() {
+        return azmth;
     }
 
-    public void setControl(int control) {
-        this.control.set(control);
+    public void setAzmth(int azmth) {
+        this.azmth.set(azmth);
     }
 
-    private final SimpleIntegerProperty number;
-    private final SimpleStringProperty stopName;
-    private final SimpleDoubleProperty lon;
+    private final SimpleIntegerProperty id;
+    private final SimpleStringProperty name;
     private final SimpleDoubleProperty lat;
-    private final SimpleIntegerProperty route;
-    private final SimpleIntegerProperty control;
+    private final SimpleDoubleProperty lon;
+    private final SimpleIntegerProperty azmth;
 
 
-    public BusStopTable(int number, String stopName, double lon, Double lat, int route, short control) {
-        this.number = new SimpleIntegerProperty(number);
-        this.stopName = new SimpleStringProperty(stopName);
-        this.lon = new SimpleDoubleProperty(lon);
+    public BusStopTable(int id, String name, double lat, double lon, int azmth) {
+        this.id = new SimpleIntegerProperty(id);
+        this.name = new SimpleStringProperty(name);
         this.lat = new SimpleDoubleProperty(lat);
-        this.route = new SimpleIntegerProperty(route);
-        this.control = new SimpleIntegerProperty(control);
+        this.lon = new SimpleDoubleProperty(lon);
+        this.azmth = new SimpleIntegerProperty(azmth);
     }
 }
