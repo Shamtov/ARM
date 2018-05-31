@@ -1,0 +1,10 @@
+справочник блоков
+SELECT granits.block_number AS "Номер блока", block_types.bt_name_ AS "Тип блока" FROM granits LEFT JOIN
+block_types ON granits.block_type = block_types.bt_id_
+select OBJECTS.NAME_ as "ГосНомер ТС"
+from OBJECTS
+left join GRANITS on GRANITS.OIDS_ = OBJECTS.OBJ_ID_
+
+1
+ select OBJECTS.NAME_ as "ГосНомер ТС"
+from objects,granits where objects.obj_id_ = granits.oids_
