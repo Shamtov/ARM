@@ -13,13 +13,14 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.RoutesTable;
-import ru.coddvrn.Application.Scene.SubScene.RoutesAdd;
-import ru.coddvrn.Application.Scene.SubScene.RoutesEdit;
+import ru.coddvrn.Application.Notifications.Notification;
+import ru.coddvrn.Application.Scene.SubScene.RouteAdd;
+import ru.coddvrn.Application.Scene.SubScene.RouteEdit;
 
 import java.sql.*;
 import java.util.Optional;
 
-public class Routes {
+public class Route {
     // Create data Collection
     protected ObservableList<RoutesTable> data = FXCollections.observableArrayList();
     // Create table
@@ -65,12 +66,15 @@ public class Routes {
         sp.setDisable(false);
         // Create buttons
         Button add = new Button("Новая запись...");
-        add.setOnAction(event -> new RoutesAdd().display());
+        add.setOnAction(event -> new RouteAdd().display());
 
         Button edit = new Button("Изменить");
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         edit.setOnAction(event -> {
-            new RoutesEdit().display();
+            new RouteEdit().display(table.getSelectionModel().getSelectedItem().getRouteName(),
+                    table.getSelectionModel().getSelectedItem().getBusStopCount(),
+                    table.getSelectionModel().getSelectedItem().getStatus(),
+                    table.getSelectionModel().getSelectedItem().getRouteName());
         });
 
         Button delete = new Button("Удалить");
@@ -83,7 +87,7 @@ public class Routes {
             Optional<ButtonType> action = alert.showAndWait();
 
             if (action.get() == ButtonType.OK) {
-//                deleteData(table.getSelectionModel().getSelectedItem().getRouteName());
+                deleteData(table.getSelectionModel().getSelectedItem().getRouteName());
                 table.getItems().removeAll(table.getSelectionModel().getSelectedItem());
             }
         });
@@ -136,19 +140,26 @@ public class Routes {
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorAdd(exception);
         }
+        new Notification().getSuccessAdd();
+        refreshTable();
+        new RouteAdd().clearFields(nameValue, statusValue);
     }
 
-    public void updateData(TextField nameValue, TextField statusValue) {
+    public void updateData(TextField newNameValue, TextField statusValue, String oldNameValue) {
         final String query = "UPDATE bs SET name_ = ? ,route_active_ = ? WHERE name_ = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, nameValue.getText());
+            preparedStatement.setString(1, newNameValue.getText());
             preparedStatement.setString(2, statusValue.getText());
+            preparedStatement.setString(3, oldNameValue);
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorEdit(exception);
         }
+        Notification.getSuccessEdit();
     }
 
     private void deleteData(String nameValue) {
@@ -159,6 +170,7 @@ public class Routes {
             preparedStatement.executeUpdate();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorDelete(exception);
         }
     }
 

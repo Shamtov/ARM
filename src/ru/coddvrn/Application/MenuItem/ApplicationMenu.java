@@ -1,6 +1,5 @@
 package ru.coddvrn.Application.MenuItem;
 import ru.coddvrn.Application.Alerts.ConfirmBox;
-import ru.coddvrn.Application.Entity.RoutesTable;
 import ru.coddvrn.Application.Scene.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -43,7 +42,7 @@ public class ApplicationMenu {
         MenuItem directoryOfStopsItem = new MenuItem("Справочник остановок");
         directoryOfStopsItem.setOnAction(event ->  new BusStop().display());
         MenuItem directoryOfRoutesItem = new MenuItem("Справочник маршрутов");
-        directoryOfRoutesItem.setOnAction(event -> new Routes().display());
+        directoryOfRoutesItem.setOnAction(event -> new Route().display());
         MenuItem directoryOfObjectsItem = new MenuItem("Справочник объектов");
 //        MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
 //        MenuItem directoryOfCarriersItem = new MenuItem("Справочник перевозчиков");

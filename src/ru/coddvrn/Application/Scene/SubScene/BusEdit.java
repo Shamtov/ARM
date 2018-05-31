@@ -41,7 +41,6 @@ public class BusEdit extends BusStop{
 
        Label latLabel = new Label("Долгота");
        latLabel.setFont(new Font("Arial", 14));
-//       this.lonText = new TextField();
        lonText.setText(String.valueOf(lonValue));
        lonText.setPromptText("51,657974");
        lonText.setMinWidth(150);

@@ -13,6 +13,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.BusStopTable;
+import ru.coddvrn.Application.Notifications.Notification;
 import ru.coddvrn.Application.Scene.SubScene.BusAdd;
 import ru.coddvrn.Application.Scene.SubScene.BusEdit;
 
@@ -107,14 +108,6 @@ public class BusStop {
                 table.getItems().removeAll(table.getSelectionModel().getSelectedItem());
             }
         });
-  /*      delete.setOnAction(e ->{
-            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-            alert.setTitle("Подтверждение");
-            alert.setHeaderText(null);
-            alert.setContentText("Вы действительно хотите удалить запись?");
-            Optional<ButtonType> action = alert.showAndWait();
-
-            if(action.get() == ButtonType.OK){}});*/
         Button refresh = new Button("Обновить");
         refresh.setOnAction(event -> refreshTable());
 
@@ -164,7 +157,9 @@ public class BusStop {
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorAdd(exception);
         }
+        new Notification().getSuccessAdd();
         refreshTable();
         new BusAdd().clearFields(nameText, lonText, latText, azmthText);
     }
@@ -181,7 +176,9 @@ public class BusStop {
             preparedStatement.execute();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorEdit(exception);
         }
+        Notification.getSuccessEdit();
         refreshTable();
     }
 
@@ -193,6 +190,7 @@ public class BusStop {
             preparedStatement.executeUpdate();
         } catch (SQLException exception) {
             exception.printStackTrace();
+            Notification.getErrorDelete(exception);
         }
         refreshTable();
     }

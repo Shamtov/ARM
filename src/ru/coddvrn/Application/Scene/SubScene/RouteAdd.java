@@ -11,9 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import ru.coddvrn.Application.Scene.Routes;
+import ru.coddvrn.Application.Scene.Route;
 
-public class RoutesAdd extends Routes {
+public class RouteAdd extends Route {
     private TextField nameText = new TextField();
     private TextField countText = new TextField();
     private TextField statusText = new TextField();
@@ -56,11 +56,11 @@ public class RoutesAdd extends Routes {
         root.add(statusText, 1, 2);
 
         Button add = new Button("Сохранить");
-//        add.setOnAction(event -> addData(nameText, nameText, lonText, latText, countText, statusText));
+        add.setOnAction(event -> addData(nameText, statusText));
         Button cancel = new Button("Отмена");
-        cancel.setOnAction(event -> {
-            subRoutesStage.close();
-        });
+        cancel.setOnAction(event ->
+                subRoutesStage.close()
+        );
 
         HBox buttonBox = new HBox(20);
         buttonBox.getChildren().addAll(add, cancel);
@@ -71,9 +71,8 @@ public class RoutesAdd extends Routes {
 
     }
 
-    public static void clearFields(TextField nameText, TextField countText, TextField statusText) {
+    public static void clearFields(TextField nameText, TextField statusText) {
         nameText.clear();
-        countText.clear();
         statusText.clear();
     }
 
