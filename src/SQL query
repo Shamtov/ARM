@@ -25,12 +25,12 @@ select O.NAME_ as "ГосНомер ТС", CAR_BRAND.CB_NAME_ as "Марка Т�
        O.LAST_STATION_TIME_ as "Время последней остановки", P.NAME_ as "Перевозчик", PROVIDERS.NAME_ as "Установщик",
        O.DATE_INSERTED_ as "Дата Регистрации",
        case O.OBJ_OUTPUT_
-         when 0 then 'выведен'
-         ||' '
+         when 0 then 'Выведен'
+         ||' ('
          ||EXTRACT (Day from o.date_inserted_)|| '.'
          ||EXTRACT(month from o.date_inserted_)||'.'
-         ||EXTRACT(year from o.date_inserted_)
-         when 1 then 'активен'
+         ||EXTRACT(year from o.date_inserted_)||')'
+         when 1 then 'Активен'
        end as "Состояние",
        O.PHONE_ as "Телефон", O.USER_COMMENT_ as "Комментарий"
 from OBJECTS O
