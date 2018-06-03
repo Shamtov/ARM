@@ -26,9 +26,12 @@ select O.NAME_ as "ГосНомер ТС", CAR_BRAND.CB_NAME_ as "Марка Т�
        O.DATE_INSERTED_ as "Дата Регистрации",
        case O.OBJ_OUTPUT_
          when 0 then 'выведен'
+         ||' '
+         ||EXTRACT (Day from o.date_inserted_)|| '.'
+         ||EXTRACT(month from o.date_inserted_)||'.'
+         ||EXTRACT(year from o.date_inserted_)
          when 1 then 'активен'
        end as "Состояние",
-       o.obj_output_date_ as "Дата вывода",
        O.PHONE_ as "Телефон", O.USER_COMMENT_ as "Комментарий"
 from OBJECTS O
 left join CAR_BRAND on O.CAR_BRAND_ = CAR_BRAND.CB_ID_
