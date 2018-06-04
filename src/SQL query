@@ -1,6 +1,11 @@
-Справочник навигационных блоков
+﻿Справочник навигационных блоков
 SELECT g.block_number AS "Номер блока", b.bt_name_ AS "Тип блока", o.name_ AS "ГосНомер ТС",
-o.phone_ AS "Номер телефона",o.last_time_ AS "Время последнего", p.name_ AS "Перевозчик", providers.name_ AS "Установщик",
+o.phone_ AS "Номер телефона",EXTRACT (Day from o.last_time_)|| '-'
+         ||EXTRACT(month from o.last_time_)||'-'
+         ||EXTRACT(year from o.last_time_)||' '
+         ||EXTRACT(hour from o.last_time_)||':'
+         ||EXTRACT(minute from o.last_time_)||':'
+         ||EXTRACT(second from o.last_time_) AS "Время последнего", p.name_ AS "Перевозчик", providers.name_ AS "Установщик",
 o.user_comment_ AS "Комментарий"
 FROM granits g
 LEFT JOIN block_types b
