@@ -1,10 +1,44 @@
-справочник блоков
-SELECT granits.block_number AS "Номер блока", block_types.bt_name_ AS "Тип блока" FROM granits LEFT JOIN
-block_types ON granits.block_type = block_types.bt_id_
-select OBJECTS.NAME_ as "ГосНомер ТС"
-from OBJECTS
-left join GRANITS on GRANITS.OIDS_ = OBJECTS.OBJ_ID_
+Справочник навигационных блоков
+SELECT g.block_number AS "Номер блока", b.bt_name_ AS "Тип блока", o.name_ AS "ГосНомер ТС",
+o.phone_ AS "Номер телефона",o.last_time_ AS "Время последнего", p.name_ AS "Перевозчик", providers.name_ AS "Установщик",
+o.user_comment_ AS "Комментарий"
+FROM granits g
+LEFT JOIN block_types b
+ON g.block_type = b.bt_id_
+LEFT JOIN  objects o
+ON g.oids_ = o.ids_
+LEFT JOIN projects p
+ON o.proj_id_= p.id_
+LEFT JOIN providers
+ON o.provider_= providers.id_
 
-1
- select OBJECTS.NAME_ as "ГосНомер ТС"
-from objects,granits where objects.obj_id_ = granits.oids_
+select o.name_ AS "ГосНомер",o.phone_ AS "Номер телефона",o.last_time_  AS "Последнее время"
+from objects o
+where o.phone_ like '920%'
+or o.phone_ like '929%'
+or o.phone_ like '930%'
+
+Модели объектов
+select O.NAME_ as "ГосНомер ТС", CAR_BRAND.CB_NAME_ as "Марка ТС", O.YEAR_RELEASE_ as "Год выуска",
+       CAR_TYPE_.NAME_ as "Тип ТС", O.LAST_TIME_ as "Последнее время", O.LAST_SPEED_ as "Последняя скорость",
+       ROUTS.NAME_ as "Маршрут", O.LAST_STATION_ as "Последняя остановка",
+       O.LAST_STATION_TIME_ as "Время последней остановки", P.NAME_ as "Перевозчик", PROVIDERS.NAME_ as "Установщик",
+       O.DATE_INSERTED_ as "Дата Регистрации",
+       case O.OBJ_OUTPUT_
+         when 0 then 'Выведен'
+         ||' ('
+         ||EXTRACT (Day from o.date_inserted_)|| '.'
+         ||EXTRACT(month from o.date_inserted_)||'.'
+         ||EXTRACT(year from o.date_inserted_)||')'
+         when 1 then 'Активен'
+       end as "Состояние",
+       O.PHONE_ as "Телефон", O.USER_COMMENT_ as "Комментарий"
+from OBJECTS O
+left join CAR_BRAND on O.CAR_BRAND_ = CAR_BRAND.CB_ID_
+left join CAR_TYPE_ on O.VEHICLE_TYPE_ = CAR_TYPE_.CT_ID_
+left join ROUTS on O.LAST_ROUT_ = ROUTS.ID_
+left join PROJECTS P on O.PROJ_ID_ = P.ID_
+left join PROVIDERS on O.PROVIDER_ = PROVIDERS.ID_  
+
+
+
