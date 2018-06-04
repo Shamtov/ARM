@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="api">
+    <CLASSES />
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/../Jaybird-3.0.4-JDK_1.8.zip!/docs/api" />
+    </JAVADOC>
+    <SOURCES />
+  </library>
+</component>

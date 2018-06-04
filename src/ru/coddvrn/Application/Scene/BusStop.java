@@ -1,6 +1,7 @@
 package ru.coddvrn.Application.Scene;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -9,19 +10,23 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.BusStopTable;
+import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
-import ru.coddvrn.Application.Scene.SubScene.BusAdd;
-import ru.coddvrn.Application.Scene.SubScene.BusEdit;
+import ru.coddvrn.Application.Scene.SubScene.SubBus;
 
 import java.sql.*;
 import java.util.Optional;
 
 public class BusStop {
     // Singleton
+    protected BusStop() {
+    }
+
     private static BusStop instance;
 
     public static BusStop getInstance() {
@@ -35,7 +40,9 @@ public class BusStop {
     // Create table
     protected TableView<BusStopTable> table = new TableView<>();
 
-    private void initCol() {
+    private Label rowCounterLabel = new Label();
+
+    private void initColumns() {
         // Create table columns
         TableColumn idColumn = new TableColumn("ID остановки");
         //Initialize columns
@@ -64,37 +71,39 @@ public class BusStop {
         table.setEditable(true);
     }
 
+    private void initRowsCounter() {
+        rowCounterLabel.setText("Количество записей: " + data.size());
+    }
+
     public void display() {
         // New window (Stage)
         Stage dirStopsStage = new Stage();
         dirStopsStage.initModality(Modality.WINDOW_MODAL);
         dirStopsStage.setTitle("Справочник остановок");
-        initCol();
+        initColumns();
         fillTable();
-        table.setItems(data);
-//        table.contextMenuProperty();
         // Add vertical and horizontal scrollPane
-        ScrollPane sp = new ScrollPane(table);
-        sp.setPrefSize(600, 200);
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        sp.setFitToHeight(true);
-        sp.setHmax(3);
-        sp.setHvalue(0);
-        sp.setDisable(false);
+        initScrollPane();
+        initRowsCounter();
+        data.addListener(new ListChangeListener<BusStopTable>() {
+            @Override
+            public void onChanged(Change<? extends BusStopTable> c) {
+                initRowsCounter();
+            }
+        });
         // Create buttons
-        Button add = new Button("Новая запись...");
-        add.setOnAction(event -> new BusAdd().display());
+        Button add = new Button("Добавить...", IconsLoader.getInstance().getAddIcon());
+        add.setOnAction(event -> SubBus.getInstance().display());
 
-        Button edit = new Button("Изменить");
+        Button edit = new Button("Изменить...", IconsLoader.getInstance().getEditIcon());
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        edit.setOnAction(event -> new BusEdit().display(table.getSelectionModel().getSelectedItem().getId(),
+        edit.setOnAction(event -> SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
                 table.getSelectionModel().getSelectedItem().getName(),
                 table.getSelectionModel().getSelectedItem().getLat(),
                 table.getSelectionModel().getSelectedItem().getLon(),
                 table.getSelectionModel().getSelectedItem().getAzmth()));
 
-        Button delete = new Button("Удалить");
+        Button delete = new Button("Удалить", IconsLoader.getInstance().getDeleteIcon());
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         delete.setOnAction(event -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -105,25 +114,42 @@ public class BusStop {
 
             if (action.get() == ButtonType.OK) {
                 deleteData(table.getSelectionModel().getSelectedItem().getId());
-                table.getItems().removeAll(table.getSelectionModel().getSelectedItem());
             }
         });
-        Button refresh = new Button("Обновить");
+        Button refresh = new Button("Обновить", IconsLoader.getInstance().getRefreshIcon());
         refresh.setOnAction(event -> refreshTable());
 
-        HBox hbox = new HBox(20);
+        rowCounterLabel.setFont(new Font("Arial", 14));
+        HBox hbox = new HBox(15);
         hbox.getChildren().addAll(add, edit, delete, refresh);
-        hbox.setPadding(new Insets(20, 10, 10, 10));
+        hbox.setPadding(new Insets(10, 10, 10, 10));
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
-        stackPane.setPadding(new Insets(10,10,30,10));
+        stackPane.setPadding(new Insets(10, 10, 15, 10));
+        HBox rowCounterHbox = new HBox();
+        rowCounterHbox.getChildren().add(rowCounterLabel);
+        rowCounterHbox.setPadding(new Insets(10, 0, 10, 10));
         BorderPane root = new BorderPane();
         root.setTop(hbox);
         root.setCenter(stackPane);
+        root.setBottom(rowCounterHbox);
         // Set scene
         Scene dirStopsScene = new Scene(root, 800, 500);
         dirStopsStage.setScene(dirStopsScene);
         dirStopsStage.show();
+        dirStopsStage.setOnCloseRequest(event -> data.clear());
+    }
+
+    private void initScrollPane() {
+        // Add vertical and horizontal scrollPane
+        ScrollPane sp = new ScrollPane(table);
+        sp.setPrefSize(600, 200);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setFitToHeight(true);
+        sp.setHmax(3);
+        sp.setHvalue(0);
+        sp.setDisable(false);
     }
 
     public void fillTable() {
@@ -143,7 +169,7 @@ public class BusStop {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
-        this.table.setItems(data);
+        table.setItems(data);
     }
 
     public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
@@ -155,16 +181,16 @@ public class BusStop {
             preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.execute();
+            Notification.getSuccessAdd();
+            SubBus.getInstance().clearFields(nameText, lonText, latText, azmthText);
+            refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
             Notification.getErrorAdd(exception);
         }
-        new Notification().getSuccessAdd();
-        refreshTable();
-        new BusAdd().clearFields(nameText, lonText, latText, azmthText);
     }
 
-    protected void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
+    public void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
         final String query = "UPDATE bs SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -174,12 +200,13 @@ public class BusStop {
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.setInt(5, idValue);
             preparedStatement.execute();
+            Notification.getSuccessEdit();
+            SubBus.getInstance().getStage().close();
+            refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
             Notification.getErrorEdit(exception);
         }
-        Notification.getSuccessEdit();
-        refreshTable();
     }
 
     private void deleteData(int idValue) {
@@ -188,15 +215,16 @@ public class BusStop {
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idValue);
             preparedStatement.executeUpdate();
+            Notification.getSuccessDelete();
+            refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
             Notification.getErrorDelete(exception);
         }
-        refreshTable();
     }
 
     public void refreshTable() {
-        this.data.clear();
+        data.clear();
         fillTable();
     }
 }
