@@ -1,8 +1,12 @@
 package ru.coddvrn.Application.Scene;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -12,6 +16,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
@@ -24,6 +29,7 @@ import ru.coddvrn.Application.Scene.SubScene.SubObject;
 
 import java.sql.*;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class ObjectModel {
     // Singleton
@@ -117,26 +123,26 @@ public class ObjectModel {
                 }
             }
         });*/
-             statusColumn.setCellFactory(column -> {
+        statusColumn.setCellFactory(column -> {
             return new TableCell<ObjectTable, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
-                         if (item == null || empty) {
-                             setText(null);
-                        setStyle("");}
-                    else if (item.contains("Выведен")) {
-                             setText(item);
-                             setTextFill(Color.BLACK);
-                             setStyle("-fx-background-color: rgb(241,35,30)");
-                        } else {
-                             setText(item);
-                             setTextFill(Color.BLACK);
-                             setStyle("-fx-background-color: rgb(23,187,43)");
-                         }
+                    if (item == null || empty) {
+                        setText(null);
+                        setStyle("");
+                    } else if (item.contains("Выведен")) {
+                        setText(item);
+                        setTextFill(Color.BLACK);
+                        setStyle("-fx-background-color: rgb(241,35,30)");
+                    } else {
+                        setText(item);
+                        setTextFill(Color.BLACK);
+                        setStyle("-fx-background-color: rgb(23,187,43)");
                     }
-                };
-            });
+                }
+            };
+        });
     }
 
     private void initRowsCounter() {
@@ -191,9 +197,33 @@ public class ObjectModel {
         Button refresh = new Button("Обновить", IconsLoader.getInstance().getRefreshIcon());
         refresh.setOnAction(event -> refreshTable());
 
-        rowCounterLabel.setFont(new Font("Arial", 14));
+        TextField searchField = new TextField();
+        searchField.setPromptText("поиск по номеру");
+        searchField.setMinWidth(200);
+        FilteredList<ObjectTable> filteredData = new FilteredList<>(data, e -> true);
+//        searchField.setOnKeyPressed(event -> {
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+                    filteredData.setPredicate((Predicate<? super ObjectTable>) obj -> {
+                        if (newValue == null || newValue.isEmpty()) {
+                            return true;
+                        }
+                        String lowerCaseFilter = newValue.toLowerCase();
+                        if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter)) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    SortedList<ObjectTable> sortedData = new SortedList<>(filteredData);
+                    sortedData.comparatorProperty().bind(table.comparatorProperty());
+                    table.setItems(sortedData);
+                });
+
+                rowCounterLabel.setFont(new Font("Arial", 14));
         HBox hbox = new HBox(15);
-        hbox.getChildren().addAll(add, edit, delete, refresh);
+        VBox searchBox = new VBox();
+        searchBox.setPadding(new Insets(17, 0, 0, 0));
+        searchBox.getChildren().add(searchField);
+        hbox.getChildren().addAll(add, edit, delete, refresh, searchBox);
         hbox.setPadding(new Insets(10, 10, 10, 10));
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
