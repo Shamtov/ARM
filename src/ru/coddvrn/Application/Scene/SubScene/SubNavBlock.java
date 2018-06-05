@@ -1,6 +1,5 @@
 package ru.coddvrn.Application.Scene.SubScene;
 
-
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -15,23 +14,22 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Scene.BusStop;
 
-public class SubBus {
-
-    private SubBus() {
+public class SubNavBlock {
+    private SubNavBlock() {
         super();
     }
 
-    private static SubBus instance;
+    private static SubNavBlock instance;
 
-    public static SubBus getInstance() {
+    public static SubNavBlock getInstance() {
         if (instance == null)
-            instance = new SubBus();
+            instance = new SubNavBlock();
         return instance;
     }
-
-    private TextField nameText = new TextField();
-    private TextField latText = new TextField();
-    private TextField lonText = new TextField();
+    private TextField blockNumberText = new TextField();
+    private TextField blockTypeText = new TextField();
+    private TextField stateNumberText = new TextField();
+    private TextField phoneText = new TextField();
     private TextField azmthText = new TextField();
 
     private Stage subDirStopsStage = new Stage();
@@ -51,30 +49,30 @@ public class SubBus {
 
         Label nameLabel = new Label("Название остановки");
         nameLabel.setFont(new Font("Arial", 14));
-        nameText = new TextField();
-        nameText.setPromptText("ул. Леваневского (из центра)");
-        nameText.setMinWidth(200);
+        blockTypeText = new TextField();
+        blockTypeText.setPromptText("ул. Леваневского (из центра)");
+        blockTypeText.setMinWidth(200);
         GridPane.setHalignment(nameLabel, HPos.CENTER);
         gridPane.add(nameLabel, 0, 1);
-        gridPane.add(nameText, 1, 1);
+        gridPane.add(blockTypeText, 1, 1);
 
         Label lonLabel = new Label("Широта");
         lonLabel.setFont(new Font("Arial", 14));
-        latText = new TextField();
-        latText.setPromptText("39,103365");
-        latText.setMinWidth(150);
+        stateNumberText = new TextField();
+        stateNumberText.setPromptText("39,103365");
+        stateNumberText.setMinWidth(150);
         GridPane.setHalignment(lonLabel, HPos.CENTER);
         gridPane.add(lonLabel, 0, 2);
-        gridPane.add(latText, 1, 2);
+        gridPane.add(stateNumberText, 1, 2);
 
         Label latLabel = new Label("Долгота");
         latLabel.setFont(new Font("Arial", 14));
-        lonText = new TextField();
-        lonText.setPromptText("51,657974");
-        lonText.setMinWidth(150);
+        phoneText = new TextField();
+        phoneText.setPromptText("51,657974");
+        phoneText.setMinWidth(150);
         GridPane.setHalignment(latLabel, HPos.CENTER);
         gridPane.add(latLabel, 0, 3);
-        gridPane.add(lonText, 1, 3);
+        gridPane.add(phoneText, 1, 3);
 
         Label azmthLabel = new Label("Азимут");
         azmthLabel.setFont(new Font("Arial", 14));
@@ -95,10 +93,10 @@ public class SubBus {
         Button add = new Button("Сохранить");
         add.setOnKeyReleased(enter -> {
             if (enter.getCode() == KeyCode.ENTER)
-                BusStop.getInstance().addData(nameText, lonText, latText, azmthText);
+                BusStop.getInstance().addData(blockTypeText, phoneText, stateNumberText, azmthText);
         });
         add.setOnAction(event -> {
-            BusStop.getInstance().addData(nameText, lonText, latText, azmthText);
+            BusStop.getInstance().addData(blockTypeText, phoneText, stateNumberText, azmthText);
         });
         Button cancel = new Button("Отмена");
         cancel.setOnKeyReleased(escape -> {
@@ -121,18 +119,18 @@ public class SubBus {
         GridPane root = initScene();
         subDirStopsStage.setTitle("Изменить");
 
-        nameText.setText(nameValue);
-        lonText.setText(String.valueOf(lonValue));
-        latText.setText(String.valueOf(latValue));
+        blockTypeText.setText(nameValue);
+        phoneText.setText(String.valueOf(lonValue));
+        stateNumberText.setText(String.valueOf(latValue));
         azmthText.setText(String.valueOf(azmthValue));
 
         Button add = new Button("Сохранить");
         add.setOnKeyReleased(enter -> {
             if (enter.getCode() == KeyCode.ENTER)
-                BusStop.getInstance().updateData(nameText, lonText, latText, azmthText, idValue);
+                BusStop.getInstance().updateData(blockTypeText, phoneText, stateNumberText, azmthText, idValue);
         });
         add.setOnAction(event ->
-                BusStop.getInstance().updateData(nameText, lonText, latText, azmthText, idValue));
+                BusStop.getInstance().updateData(blockTypeText, phoneText, stateNumberText, azmthText, idValue));
 
         Button cancel = new Button("Отмена");
         cancel.setOnKeyReleased(escape -> {
@@ -161,4 +159,3 @@ public class SubBus {
     }
 
 }
-

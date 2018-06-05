@@ -1,6 +1,8 @@
 package ru.coddvrn.Application.MenuItem;
 
 import ru.coddvrn.Application.Alerts.ConfirmBox;
+import ru.coddvrn.Application.Entity.NavigationBlockTable;
+import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Scene.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -14,11 +16,10 @@ public class ApplicationMenu {
         // Create menus
         Menu plansMenu = new Menu("Планы");
         Menu dispMenu = new Menu("Диспетчеризация");
-        Menu directoryMenu = new Menu("Справочники");
+        Menu directoryMenu = new Menu("Справочники",IconsLoader.getInstance().getDirectoryIcon());
         Menu reportMenu = new Menu("Отчётность");
         Menu serviceMenu = new Menu("Сервис");
-        Menu exitMenu = new Menu("Выход");
-
+        Menu exitMenu = new Menu("Выход", IconsLoader.getInstance().getLogoutIcon());
         // SeparatorMenuItems
         SeparatorMenuItem separator = new SeparatorMenuItem();
         SeparatorMenuItem separator2 = new SeparatorMenuItem();
@@ -45,10 +46,12 @@ public class ApplicationMenu {
         MenuItem directoryOfRoutesItem = new MenuItem("Справочник маршрутов");
         directoryOfRoutesItem.setOnAction(event -> Route.getInstance().display());
         MenuItem directoryOfObjectsItem = new MenuItem("Справочник объектов");
+        directoryOfObjectsItem.setOnAction(event -> ObjectModel.getInstance().display());
 //        MenuItem directoryOfVehicleModelsItem = new MenuItem("Справочник моделей транспортных средств");
 //        MenuItem directoryOfCarriersItem = new MenuItem("Справочник перевозчиков");
 //        MenuItem directoryOfContractsItem = new MenuItem("Справочник договоров");
         MenuItem directoryOfNavigationBlockItem = new MenuItem("Справочник навигационных блоков");
+        directoryOfNavigationBlockItem.setOnAction(event -> NavigationBlock.getInstance().display());
 
         MenuItem reportingControlItem = new MenuItem("Контроль выполнения отчетов");
 

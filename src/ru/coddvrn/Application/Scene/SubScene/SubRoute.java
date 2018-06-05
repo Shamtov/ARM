@@ -7,11 +7,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import ru.coddvrn.Application.Scene.BusStop;
 import ru.coddvrn.Application.Scene.Route;
 
 public class SubRoute {
@@ -73,8 +75,17 @@ public class SubRoute {
         root.add(statusText, 1, 2);
 
         Button add = new Button("Сохранить");
+        add.setOnKeyReleased(enter -> {
+            if (enter.getCode() == KeyCode.ENTER)
+                Route.getInstance().addData(nameText, countText, statusText);
+        });
         add.setOnAction(event -> Route.getInstance().addData(nameText, countText, statusText));
+
         Button cancel = new Button("Отмена");
+        cancel.setOnKeyReleased(escape -> {
+            if (escape.getCode() == KeyCode.ESCAPE)
+                subRoutesStage.close();
+        });
         cancel.setOnAction(event ->
                 subRoutesStage.close()
         );
@@ -124,8 +135,17 @@ public class SubRoute {
         root.add(statusText, 1, 2);
 
         Button add = new Button("Сохранить");
+        add.setOnKeyReleased(enter -> {
+            if (enter.getCode() == KeyCode.ENTER)
+                Route.getInstance().updateData(nameText, statusText, oldNameValue);
+        });
         add.setOnAction(event -> Route.getInstance().updateData(nameText, statusText, oldNameValue));
+
         Button cancel = new Button("Отмена");
+        cancel.setOnKeyReleased(escape -> {
+            if (escape.getCode() == KeyCode.ESCAPE)
+                subRoutesStage.close();
+        });
         cancel.setOnAction(event ->
                 subRoutesStage.close()
         );
@@ -136,7 +156,6 @@ public class SubRoute {
         Scene subRoutesScene = new Scene(root, 450, 250);
         subRoutesStage.setScene(subRoutesScene);
         subRoutesStage.show();
-        subRoutesStage.setOnCloseRequest(event -> Route.getInstance().refreshTable());
 
     }
     public void clearFields(TextField nameText, TextField statusText) {

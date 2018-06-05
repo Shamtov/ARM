@@ -9,17 +9,17 @@ import java.sql.SQLException;
 
 public class Notification {
 
-    public void getConnect(SQLException except){
+    public static void getConnect(SQLException except){
         Notifications.create()
                 .title("Соединение с базой данных")
                 .text("Не удаётся установить соединение"+"/n"+except)
                 .graphic(null)
                 .darkStyle()
-                .hideAfter(Duration.seconds(3.0))
+                .hideAfter(Duration.minutes(3.0))
                 .position(Pos.CENTER)
                 .showError();
     }
-    public void getSuccessAdd(){
+    public static void getSuccessAdd(){
         Notifications.create()
                 .title("Добавление в базу")
                 .text("Запись успешно добавлена")
@@ -27,7 +27,7 @@ public class Notification {
                 .darkStyle()
                 .hideAfter(Duration.seconds(3.0))
                 .position(Pos.BOTTOM_RIGHT)
-                .showConfirm();
+                .showInformation();
     }
     public static void getSuccessEdit(){
         Notifications.create()
@@ -37,7 +37,17 @@ public class Notification {
                 .graphic(null)
                 .hideAfter(Duration.seconds(3.0))
                 .position(Pos.BOTTOM_RIGHT)
-                .showConfirm();
+                .showInformation();
+    }
+    public static void getSuccessDelete(){
+        Notifications.create()
+                .title("Удаление записи")
+                .text("Запись успешно удалена")
+                .darkStyle()
+                .graphic(null)
+                .hideAfter(Duration.seconds(3.0))
+                .position(Pos.BOTTOM_RIGHT)
+                .showInformation();
     }
     public static void getErrorAdd(SQLException except){
         Notifications.create()
@@ -45,7 +55,7 @@ public class Notification {
                 .text("Не удалось добавить запись"+"/n"+except)
                 .graphic(null)
                 .darkStyle()
-                .hideAfter(Duration.seconds(3.0))
+                .hideAfter(Duration.minutes(3.0))
                 .position(Pos.BOTTOM_RIGHT)
                 .showError();
     }
@@ -55,7 +65,7 @@ public class Notification {
                 .text("Не удалось изменить запись"+"/n"+except)
                 .graphic(null)
                 .darkStyle()
-                .hideAfter(Duration.seconds(3.0))
+                .hideAfter(Duration.minutes(3.0))
                 .position(Pos.BOTTOM_RIGHT)
                 .showError();
     }
@@ -65,9 +75,10 @@ public class Notification {
                 .text("Не удалось удалить запись"+"/n"+except)
                 .graphic(null)
                 .darkStyle()
-                .hideAfter(Duration.seconds(3.0))
+                .hideAfter(Duration.minutes(3.0))
                 .position(Pos.BOTTOM_RIGHT)
                 .showError();
     }
+
 
 }

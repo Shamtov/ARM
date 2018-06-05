@@ -3,10 +3,12 @@ package ru.coddvrn.Application.Scene;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -23,7 +25,7 @@ import java.sql.*;
 import java.util.Optional;
 
 public class Route {
-    protected Route() {
+    private Route() {
     }
 
     private static Route instance;
@@ -60,7 +62,18 @@ public class Route {
         //Add columns to the table
         table.getColumns().addAll(nameColumn, counterColumn, statusColumn);
         table.setTableMenuButtonVisible(true);
-        table.setEditable(true);
+        table.setEditable(false);
+        table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    SubRoute.getInstance().display(table.getSelectionModel().getSelectedItem().getRouteName(),
+                            table.getSelectionModel().getSelectedItem().getBusStopCount(),
+                            table.getSelectionModel().getSelectedItem().getStatus(),
+                            table.getSelectionModel().getSelectedItem().getRouteName());
+                }
+            }
+        });
     }
 
     private void initRowsCounter() {
@@ -129,7 +142,7 @@ public class Route {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene dirStopsScene = new Scene(root, 800, 500);
+        Scene dirStopsScene = new Scene(root, 800, 800);
         routesStage.setScene(dirStopsScene);
         routesStage.show();
         routesStage.setOnCloseRequest(event -> data.clear());
@@ -148,7 +161,6 @@ public class Route {
     }
 
     public void fillTable() {
-        System.out.println("fillTable");
         final String query = "SELECT routs.name_,(SELECT count(*) FROM bs_route WHERE bs_route.route_id = routs.id_) AS counter, " +
                 "CASE routs.route_active_ WHEN 0 THEN 'Не используется' WHEN 1 THEN 'Работает' END AS new_active FROM routs";
         try (Connection connection = Connect.getConnect();

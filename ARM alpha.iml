@@ -19,14 +19,10 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/../JNotifications" />
+          <root url="jar://$MODULE_DIR$/../controlsfx-9.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/../JNotifications" />
-        </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/../JNotifications" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/../JNotifications" recursive="false" type="SOURCES" />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
