@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="JDBC Firebird">
-    <CLASSES />
-    <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/../Jaybird-3.0.4-JDK_1.8.zip!/docs/api" />
-    </JAVADOC>
-    <SOURCES />
-  </library>
-</component>

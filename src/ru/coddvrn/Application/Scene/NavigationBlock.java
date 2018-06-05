@@ -14,7 +14,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
-import ru.coddvrn.Application.Entity.NavBlockTable;
+import ru.coddvrn.Application.Entity.NavigationBlockTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
 import ru.coddvrn.Application.Scene.SubScene.SubBus;
@@ -36,9 +36,9 @@ public class NavigationBlock {
     }
 
     // Create data Collection
-    private ObservableList<NavBlockTable> data = FXCollections.observableArrayList();
+    private ObservableList<NavigationBlockTable> data = FXCollections.observableArrayList();
     // Create table
-    private TableView<NavBlockTable> table = new TableView<>();
+    private TableView<NavigationBlockTable> table = new TableView<>();
 
     private Label rowCounterLabel = new Label();
 
@@ -47,35 +47,35 @@ public class NavigationBlock {
         TableColumn blockNumberColumn = new TableColumn("Номер блока");
         //Initialize columns
         blockNumberColumn.setMinWidth(100);
-        blockNumberColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, Integer>("blockNumber"));
+        blockNumberColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, Integer>("blockNumber"));
 
         TableColumn blockTypeColumn = new TableColumn("Тип блока");
         blockTypeColumn.setMinWidth(130);
-        blockTypeColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, String>("blockType"));
+        blockTypeColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, String>("blockType"));
 
         TableColumn stateNumberColumn = new TableColumn("Гос. Номер ТС");
         stateNumberColumn.setMinWidth(100);
-        stateNumberColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, String>("stateNumber"));
+        stateNumberColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, String>("stateNumber"));
 
         TableColumn phoneColumn = new TableColumn("Номер телефона");
         phoneColumn.setMinWidth(130);
-        phoneColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, Long>("phone"));
+        phoneColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, Long>("phoneNumber"));
 
         TableColumn timeColumn = new TableColumn("Время последнего");
         timeColumn.setMinWidth(150);
-        timeColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, Object>("time"));
+        timeColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, Object>("time"));
 
         TableColumn carrierColumn = new TableColumn("Перевозчик");
         carrierColumn.setPrefWidth(100);
-        carrierColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, String>("carrier"));
+        carrierColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, String>("carrier"));
 
         TableColumn installerColumn = new TableColumn("Установщик");
         installerColumn.setMinWidth(100);
-        installerColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, String>("installer"));
+        installerColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, String>("installer"));
 
         TableColumn commentsColumn = new TableColumn("Комментарий");
         commentsColumn.setMinWidth(200);
-        commentsColumn.setCellValueFactory(new PropertyValueFactory<NavBlockTable, String>("comment"));
+        commentsColumn.setCellValueFactory(new PropertyValueFactory<NavigationBlockTable, String>("comment"));
         //Add columns to the table
         table.getColumns().addAll(blockNumberColumn, blockTypeColumn, stateNumberColumn, phoneColumn, timeColumn, carrierColumn, installerColumn, commentsColumn);
         table.setTableMenuButtonVisible(true);
@@ -96,9 +96,9 @@ public class NavigationBlock {
         // Add vertical and horizontal scrollPane
         initScrollPane();
         initRowsCounter();
-        data.addListener(new ListChangeListener<NavBlockTable>() {
+        data.addListener(new ListChangeListener<NavigationBlockTable>() {
             @Override
-            public void onChanged(Change<? extends NavBlockTable> c) {
+            public void onChanged(Change<? extends NavigationBlockTable> c) {
                 initRowsCounter();
             }
         });
@@ -107,8 +107,8 @@ public class NavigationBlock {
         add.setOnAction(event -> SubNavBlock.getInstance().display());
 
         Button edit = new Button("Изменить...", IconsLoader.getInstance().getEditIcon());
-     /*  edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        edit.setOnAction(event -> SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
+        edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        /*edit.setOnAction(event -> SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
                 table.getSelectionModel().getSelectedItem().getName(),
                 table.getSelectionModel().getSelectedItem().getLat(),
                 table.getSelectionModel().getSelectedItem().getLon(),
@@ -185,7 +185,7 @@ public class NavigationBlock {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
             while (resultSet.next()) {
-                data.add(new NavBlockTable(
+                data.add(new NavigationBlockTable(
                         resultSet.getInt("block"),
                         resultSet.getString("type"),
                         resultSet.getString("state"),

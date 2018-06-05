@@ -45,9 +45,9 @@ SELECT o.name_ AS state, car_brand.cb_name_ AS brand, o.year_release_ AS year_, 
                          CASE o.obj_output_
                          WHEN 0 THEN 'Выведен'
                          ||' ('
-                         ||EXTRACT (DAY FROM o.date_inserted_)|| '.'
-                         ||EXTRACT(MONTH FROM o.date_inserted_)||'.'
-                         ||EXTRACT(year from o.date_inserted_)||')'
+                         ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'
+                         ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'
+                         ||EXTRACT(year from o.obj_output_date_)||')'
                         WHEN 1 THEN 'Активен'
                        END AS status,
                        o.phone_ AS phone, o.user_comment_ AS comment

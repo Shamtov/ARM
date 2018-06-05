@@ -65,19 +65,19 @@ public class ObjectModel {
         carTypeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("carType"));
 
         TableColumn lastTimeColumn = new TableColumn("Время последнего отклика");
-        lastTimeColumn.setPrefWidth(200);
+        lastTimeColumn.setPrefWidth(150);
         lastTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, Object>("lastTime"));
 
         TableColumn speedColumn = new TableColumn("Последняя скорость");
-        speedColumn.setPrefWidth(130);
+        speedColumn.setPrefWidth(100);
         speedColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, Integer>("lastSpeed"));
 
         TableColumn routeColumn = new TableColumn("Маршрут");
-        routeColumn.setPrefWidth(150);
+        routeColumn.setPrefWidth(100);
         routeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("routsName"));
 
         TableColumn lastStationTimeColumn = new TableColumn("Время последней остановки");
-        lastStationTimeColumn.setPrefWidth(200);
+        lastStationTimeColumn.setPrefWidth(150);
         lastStationTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, Object>("lastStationTime"));
 
         TableColumn carrierColumn = new TableColumn("Перевозчик");
@@ -89,7 +89,7 @@ public class ObjectModel {
         installerColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("installer"));
 
         TableColumn registrationTimeColumn = new TableColumn("Дата Регистрации");
-        registrationTimeColumn.setPrefWidth(150);
+        registrationTimeColumn.setPrefWidth(120);
         registrationTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
 
         TableColumn statusColumn = new TableColumn("Состояние");
@@ -117,22 +117,22 @@ public class ObjectModel {
                 }
             }
         });*/
-        statusColumn.setCellFactory(column -> {
+             statusColumn.setCellFactory(column -> {
             return new TableCell<ObjectTable, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                          if (item == null || empty) {
-//                             setText(null);
+                             setText(null);
                         setStyle("");}
-                    else if (item.equalsIgnoreCase("Активен")) {
+                    else if (item.contains("Выведен")) {
                              setText(item);
                              setTextFill(Color.BLACK);
-                             setStyle("-fx-background-color: green");
+                             setStyle("-fx-background-color: rgb(241,35,30)");
                         } else {
                              setText(item);
                              setTextFill(Color.BLACK);
-                             setStyle("-fx-background-color: red");
+                             setStyle("-fx-background-color: rgb(23,187,43)");
                          }
                     }
                 };
@@ -206,7 +206,7 @@ public class ObjectModel {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene navBlockScene = new Scene(root, 1830, 700);
+        Scene navBlockScene = new Scene(root, 1080, 720);
         objStage.setScene(navBlockScene);
         objStage.show();
         objStage.setOnCloseRequest(event -> data.clear());
@@ -246,9 +246,9 @@ public class ObjectModel {
                 "       CASE o.obj_output_" +
                 "         WHEN 0 THEN 'Выведен'" +
                 "         ||' ('" +
-                "         ||EXTRACT (DAY FROM o.date_inserted_)|| '.'" +
-                "         ||EXTRACT(MONTH FROM o.date_inserted_)||'.'" +
-                "         ||EXTRACT(year from o.date_inserted_)||')'" +
+                "         ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'" +
+                "         ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'" +
+                "         ||EXTRACT(year from o.obj_output_date_)||')'" +
                 "         WHEN 1 THEN 'Активен'" +
                 "       END AS status," +
                 "       o.phone_ AS phone, o.user_comment_ AS comment " +

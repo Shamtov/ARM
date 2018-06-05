@@ -9,7 +9,7 @@ public class Connect {
     private final static String PASSWORD = "masterkey";
     private final static String URL = "";
     private final static String PORT = "";
-    private final static String URL_STRING = "jdbc:firebirdsql://localhost:3050/C:\\Users\\SergeyIggy\\IdeaProjects\\PROJECTS_23_04.FDB?encoding=WIN1251";
+    private final static String URL_STRING = "jdbc:firebirdsql://localhost:3050/C:\\Users\\D\\Downloads\\Универ\\PROJECTS123.FDB?encoding=WIN1251";
     public static Connection getConnect() {
         Connection con = null;
         try {
@@ -20,15 +20,5 @@ public class Connect {
         System.out.println("Connection success");
         return con;
     }
-//        public void close(){
-//        if (con!=null) {
-//            System.out.println("Соединение завершено");
-//            try {
-//                con.close();
-//            } catch (SQLException except) {
-//                except.printStackTrace();
-//            }
-//        }
-//    }
 }
 

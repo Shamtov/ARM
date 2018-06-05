@@ -12,31 +12,31 @@ public class IconsLoader {
         return instance;
     }
     public ImageView getAddIcon() {
-        ImageView addImage = new ImageView(new Image("res/icons/Symbol-Add.png"));
+        ImageView addImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Symbol-Add.png"));
         return addImage;
 
     }
     public ImageView getEditIcon() {
-        ImageView editImage = new ImageView(new Image("res/icons/Symbol-Edit.png"));
+        ImageView editImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Symbol-Edit.png"));
         return editImage;
 
     }
     public ImageView getDeleteIcon() {
-        ImageView deleteImage = new ImageView(new Image("res/icons/Symbol-Delete.png"));
+        ImageView deleteImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Symbol-Delete.png"));
         return deleteImage;
 
     }
     public ImageView getRefreshIcon(){
-        ImageView refreshImage = new ImageView(new Image("res/icons/Symbol-Refresh.png"));
+        ImageView refreshImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Symbol-Refresh.png"));
         return refreshImage;
     }
     public ImageView getDirectoryIcon() {
-        ImageView directoryImage = new ImageView(new Image("res/icons/Report.png"));
+        ImageView directoryImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Report.png"));
         return directoryImage;
 
     }
     public ImageView getLogoutIcon() {
-        ImageView logoutImage = new ImageView(new Image("res/icons/Logout.png"));
+        ImageView logoutImage = new ImageView(new Image("ru/coddvrn/Application/res/icons/Logout.png"));
         return logoutImage;
     }
     }

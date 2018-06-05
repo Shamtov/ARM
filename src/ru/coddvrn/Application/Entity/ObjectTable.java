@@ -2,6 +2,8 @@ package ru.coddvrn.Application.Entity;
 
 import javafx.beans.property.*;
 
+import java.util.Objects;
+
 public class ObjectTable {
 
     public String getStateNumber() {
@@ -207,4 +209,30 @@ public class ObjectTable {
 
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectTable that = (ObjectTable) o;
+        return Objects.equals(stateNumber, that.stateNumber) &&
+                Objects.equals(carBrand, that.carBrand) &&
+                Objects.equals(yearReleased, that.yearReleased) &&
+                Objects.equals(carType, that.carType) &&
+                Objects.equals(lastTime, that.lastTime) &&
+                Objects.equals(lastSpeed, that.lastSpeed) &&
+                Objects.equals(routsName, that.routsName) &&
+                Objects.equals(lastStationTime, that.lastStationTime) &&
+                Objects.equals(carrier, that.carrier) &&
+                Objects.equals(installer, that.installer) &&
+                Objects.equals(dateInserted, that.dateInserted) &&
+                Objects.equals(status, that.status) &&
+                Objects.equals(phoneNumber, that.phoneNumber) &&
+                Objects.equals(comment, that.comment);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(stateNumber, phoneNumber);
+    }
 }
