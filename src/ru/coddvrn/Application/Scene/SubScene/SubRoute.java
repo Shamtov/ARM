@@ -4,46 +4,50 @@ package ru.coddvrn.Application.Scene.SubScene;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import ru.coddvrn.Application.Scene.BusStop;
+import ru.coddvrn.Application.Alerts.FormsAlerts;
+import ru.coddvrn.Application.Repository.ListRep;
 import ru.coddvrn.Application.Scene.Route;
+import ru.coddvrn.Application.Validate.ValidateFields;
 
 public class SubRoute {
-
-    private TextField nameText = new TextField();
-    private TextField countText = new TextField();
-    private TextField statusText = new TextField();
 
     private static SubRoute instance;
 
     private SubRoute() {
         super();
     }
+
     public static SubRoute getInstance() {
         if (instance == null)
             instance = new SubRoute();
         return instance;
     }
+
     private Stage subRoutesStage = new Stage();
-    public Stage getStage(){
+
+    public Stage getStage() {
         if (subRoutesStage == null)
-        subRoutesStage.initModality(Modality.APPLICATION_MODAL);
+            subRoutesStage.initModality(Modality.APPLICATION_MODAL);
         return subRoutesStage;
     }
+
+    private TextField nameText = new TextField();
+    private TextField countText = new TextField();
+
     private Label label1 = new Label("Название маршрута");
     private Label label2 = new Label("Количество остановок");
     private Label label3 = new Label("Статус");
 
     public void display() {
         subRoutesStage.setTitle("Добавить");
+        ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
 
         GridPane root = new GridPane();
         root.setPadding(new Insets(20, 10, 10, 10));
@@ -67,40 +71,41 @@ public class SubRoute {
         root.add(countText, 1, 1);
 
         label3.setFont(new Font("Arial", 14));
-        statusText = new TextField();
-        statusText.setPromptText("0 или 1");
-        statusText.setMinWidth(200);
         GridPane.setHalignment(label3, HPos.CENTER);
         root.add(label3, 0, 2);
-        root.add(statusText, 1, 2);
+        root.add(statusBox, 1, 2);
+
+        statusBox.getSelectionModel().select(0);
 
         Button add = new Button("Сохранить");
-        add.setOnKeyReleased(enter -> {
-            if (enter.getCode() == KeyCode.ENTER)
-                Route.getInstance().addData(nameText, countText, statusText);
-        });
-        add.setOnAction(event -> Route.getInstance().addData(nameText, countText, statusText));
-
         Button cancel = new Button("Отмена");
-        cancel.setOnKeyReleased(escape -> {
-            if (escape.getCode() == KeyCode.ESCAPE)
-                subRoutesStage.close();
-        });
         cancel.setOnAction(event ->
                 subRoutesStage.close()
         );
-
         HBox buttonBox = new HBox(20);
         buttonBox.getChildren().addAll(add, cancel);
         root.add(buttonBox, 1, 4);
         Scene subRoutesScene = new Scene(root, 450, 250);
+
+        subRoutesScene.setOnKeyPressed(keyEvent -> {
+                    switch (keyEvent.getCode()) {
+                        case ENTER: {
+                            if (new ValidateFields().validateString(nameText.getText()))
+                                Route.getInstance().addData(nameText, statusBox.getSelectionModel().getSelectedIndex());
+                            else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+                        }
+                    }
+                }
+        );
         subRoutesStage.setScene(subRoutesScene);
         subRoutesStage.show();
 
     }
-    public void display(String nameValue, int countValue, String statusValue, String oldNameValue) {
 
+    public void display(String nameValue, int countValue, String statusValue, String oldNameValue) {
         subRoutesStage.setTitle("Изменить");
+        ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
+        statusBox.getSelectionModel().select(statusValue);
 
         GridPane root = new GridPane();
         root.setPadding(new Insets(20, 10, 10, 10));
@@ -127,22 +132,22 @@ public class SubRoute {
 
         Label label3 = new Label("Статус");
         label3.setFont(new Font("Arial", 14));
-        statusText.setText(statusValue);
-        statusText.setPromptText("0 или 1");
-        statusText.setMinWidth(200);
         GridPane.setHalignment(label3, HPos.CENTER);
+
         root.add(label3, 0, 2);
-        root.add(statusText, 1, 2);
+        root.add(statusBox, 1, 2);
 
         Button add = new Button("Сохранить");
-        add.setOnKeyReleased(enter -> {
-            if (enter.getCode() == KeyCode.ENTER)
-                Route.getInstance().updateData(nameText, statusText, oldNameValue);
+        add.setOnAction(event -> {
+            if (new ValidateFields().validateString(nameText.getText()))
+                Route.getInstance().updateData(nameText, statusBox.getSelectionModel().getSelectedIndex(), oldNameValue);
+            else {
+                new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+            }
         });
-        add.setOnAction(event -> Route.getInstance().updateData(nameText, statusText, oldNameValue));
 
         Button cancel = new Button("Отмена");
-        cancel.setOnKeyReleased(escape -> {
+        cancel.setOnKeyPressed(escape -> {
             if (escape.getCode() == KeyCode.ESCAPE)
                 subRoutesStage.close();
         });
@@ -154,14 +159,22 @@ public class SubRoute {
         buttonBox.getChildren().addAll(add, cancel);
         root.add(buttonBox, 1, 4);
         Scene subRoutesScene = new Scene(root, 450, 250);
+        subRoutesScene.setOnKeyPressed(keyEvent -> {
+                    switch (keyEvent.getCode()) {
+                        case ENTER: {
+                            if (new ValidateFields().validateString(nameText.getText()))
+                                Route.getInstance().updateData(nameText, statusBox.getSelectionModel().getSelectedIndex(), oldNameValue);
+                            else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+                        }
+                    }
+                }
+        );
         subRoutesStage.setScene(subRoutesScene);
         subRoutesStage.show();
-
     }
-    public void clearFields(TextField nameText, TextField statusText) {
+
+    public void clearFields() {
         nameText.clear();
-        statusText.clear();
     }
-
 }
 

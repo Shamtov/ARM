@@ -1,7 +1,6 @@
 package ru.coddvrn.Application.MenuItem;
 
 import ru.coddvrn.Application.Alerts.ConfirmBox;
-import ru.coddvrn.Application.Entity.NavigationBlockTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Scene.*;
 import javafx.scene.control.Menu;

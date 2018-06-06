@@ -3,13 +3,18 @@ package ru.coddvrn.Application.Scene;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -21,10 +26,11 @@ import ru.coddvrn.Application.Scene.SubScene.SubBus;
 
 import java.sql.*;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class BusStop {
     // Singleton
-    protected BusStop() {
+    private BusStop() {
     }
 
     private static BusStop instance;
@@ -36,10 +42,10 @@ public class BusStop {
     }
 
     // Create data Collection
-    protected ObservableList<BusStopTable> data = FXCollections.observableArrayList();
+    private ObservableList<BusStopTable> data = FXCollections.observableArrayList();
     // Create table
-    protected TableView<BusStopTable> table = new TableView<>();
-
+    private TableView<BusStopTable> table = new TableView<>();
+    private FilteredList<BusStopTable> filteredData = new FilteredList<>(data, e -> true);
     private Label rowCounterLabel = new Label();
 
     private void initColumns() {
@@ -68,7 +74,19 @@ public class BusStop {
         //Add columns to the table
         table.getColumns().addAll(idColumn, nameColumn, longitudeColumn, latitudeColumn, azmthColumn);
         table.setTableMenuButtonVisible(true);
-        table.setEditable(true);
+        table.setEditable(false);
+        table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
+                            table.getSelectionModel().getSelectedItem().getName(),
+                            table.getSelectionModel().getSelectedItem().getLat(),
+                            table.getSelectionModel().getSelectedItem().getLon(),
+                            table.getSelectionModel().getSelectedItem().getAzmth());
+                }
+            }
+        });
     }
 
     private void initRowsCounter() {
@@ -107,9 +125,12 @@ public class BusStop {
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         delete.setOnAction(event -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            DialogPane pane = alert.getDialogPane();
+            pane.setPrefSize(520.0, 120.0);
+            alert.setResizable(true);
             alert.setTitle("Подтверждение");
             alert.setHeaderText(null);
-            alert.setContentText("Вы действительно хотите удалить запись?");
+            alert.setContentText("Вы действительно хотите удалить маршрут с номером "+table.getSelectionModel().getSelectedItem().getName()+" ?");
             Optional<ButtonType> action = alert.showAndWait();
 
             if (action.get() == ButtonType.OK) {
@@ -120,24 +141,55 @@ public class BusStop {
         refresh.setOnAction(event -> refreshTable());
 
         rowCounterLabel.setFont(new Font("Arial", 14));
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Найти улицу");
+        searchField.setMinWidth(200);
+        searchByItem(searchField);
+
+        VBox searchBox = new VBox();
+        searchBox.setPadding(new Insets(17, 0, 0, 0));
+        searchBox.getChildren().add(searchField);
+
         HBox hbox = new HBox(15);
-        hbox.getChildren().addAll(add, edit, delete, refresh);
+        hbox.getChildren().addAll(add, edit, delete, refresh,searchBox);
         hbox.setPadding(new Insets(10, 10, 10, 10));
+
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
         stackPane.setPadding(new Insets(10, 10, 15, 10));
+
         HBox rowCounterHbox = new HBox();
         rowCounterHbox.getChildren().add(rowCounterLabel);
         rowCounterHbox.setPadding(new Insets(10, 0, 10, 10));
+
         BorderPane root = new BorderPane();
         root.setTop(hbox);
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene dirStopsScene = new Scene(root, 800, 500);
+        Scene dirStopsScene = new Scene(root, 800, 800);
         dirStopsStage.setScene(dirStopsScene);
         dirStopsStage.show();
         dirStopsStage.setOnCloseRequest(event -> data.clear());
+    }
+
+    private void searchByItem(TextField searchField) {
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate((Predicate<? super BusStopTable>) obj -> {
+                String lowerCaseFilter = newValue.toLowerCase();
+                if (newValue == null || newValue.isEmpty())
+                    return true;
+                 else if (obj.getName().toLowerCase().contains(lowerCaseFilter))
+                    return true;
+
+                return false;
+            });
+            SortedList<BusStopTable> sortedData = new SortedList<>(filteredData);
+            sortedData.comparatorProperty().bind(table.comparatorProperty());
+            table.setItems(sortedData);
+            rowCounterLabel.setText("Количество записей: " + sortedData.size());
+        });
     }
 
     private void initScrollPane() {

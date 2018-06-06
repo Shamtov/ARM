@@ -3,13 +3,18 @@ package ru.coddvrn.Application.Scene;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -21,6 +26,8 @@ import ru.coddvrn.Application.Scene.SubScene.SubBus;
 import ru.coddvrn.Application.Scene.SubScene.SubNavBlock;
 
 import java.sql.*;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 public class NavigationBlock {
     // Singleton
@@ -39,7 +46,7 @@ public class NavigationBlock {
     private ObservableList<NavigationBlockTable> data = FXCollections.observableArrayList();
     // Create table
     private TableView<NavigationBlockTable> table = new TableView<>();
-
+    private FilteredList<NavigationBlockTable> filteredData = new FilteredList<>(data, e -> true);
     private Label rowCounterLabel = new Label();
 
     private void initColumns() {
@@ -79,7 +86,19 @@ public class NavigationBlock {
         //Add columns to the table
         table.getColumns().addAll(blockNumberColumn, blockTypeColumn, stateNumberColumn, phoneColumn, timeColumn, carrierColumn, installerColumn, commentsColumn);
         table.setTableMenuButtonVisible(true);
-        table.setEditable(true);
+        table.setEditable(false);
+        /*table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
+                            table.getSelectionModel().getSelectedItem().getName(),
+                            table.getSelectionModel().getSelectedItem().getLat(),
+                            table.getSelectionModel().getSelectedItem().getLon(),
+                            table.getSelectionModel().getSelectedItem().getAzmth());
+                }
+            }
+        });*/
     }
 
     private void initRowsCounter() {
@@ -116,30 +135,46 @@ public class NavigationBlock {
 
         Button delete = new Button("Удалить", IconsLoader.getInstance().getDeleteIcon());
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-      /*  delete.setOnAction(event -> {
+        delete.setOnAction(event -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            DialogPane pane = alert.getDialogPane();
+            pane.setPrefSize(500.0, 120.0);
+            alert.setResizable(true);
             alert.setTitle("Подтверждение");
             alert.setHeaderText(null);
-            alert.setContentText("Вы действительно хотите удалить запись?");
+            alert.setContentText("Вы действительно хотите удалить блок(-и) с номером " + table.getSelectionModel().getSelectedItem().getBlockNumber() + " ?");
             Optional<ButtonType> action = alert.showAndWait();
 
             if (action.get() == ButtonType.OK) {
-                deleteData(table.getSelectionModel().getSelectedItem().getBlockNumber(););
+                deleteData(table.getSelectionModel().getSelectedItem().getBlockNumber());
             }
-        });*/
+        });
         Button refresh = new Button("Обновить", IconsLoader.getInstance().getRefreshIcon());
         refresh.setOnAction(event -> refreshTable());
 
         rowCounterLabel.setFont(new Font("Arial", 14));
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Поиск по блоку или номеру");
+        searchField.setMinWidth(200);
+        searchByItem(searchField);
+
+        VBox searchBox = new VBox();
+        searchBox.setPadding(new Insets(17, 0, 0, 0));
+        searchBox.getChildren().add(searchField);
+
         HBox hbox = new HBox(15);
-        hbox.getChildren().addAll(add, edit, delete, refresh);
+        hbox.getChildren().addAll(add, edit, delete, refresh, searchBox);
         hbox.setPadding(new Insets(10, 10, 10, 10));
+
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
         stackPane.setPadding(new Insets(10, 10, 15, 10));
+
         HBox rowCounterHbox = new HBox();
         rowCounterHbox.getChildren().add(rowCounterLabel);
         rowCounterHbox.setPadding(new Insets(10, 0, 10, 10));
+
         BorderPane root = new BorderPane();
         root.setTop(hbox);
         root.setCenter(stackPane);
@@ -151,26 +186,47 @@ public class NavigationBlock {
         navBlockStage.setOnCloseRequest(event -> data.clear());
     }
 
+    private void searchByItem(TextField searchField) {
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate((Predicate<? super NavigationBlockTable>) obj -> {
+                String lowerCaseFilter = newValue.toLowerCase();
+                if (newValue == null || newValue.isEmpty())
+                    return true;
+                else if (String.valueOf(obj.getBlockNumber()).contains(lowerCaseFilter))
+                    return true;
+                else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
+                    return true;
+
+                return false;
+            });
+            SortedList<NavigationBlockTable> sortedData = new SortedList<>(filteredData);
+            sortedData.comparatorProperty().bind(table.comparatorProperty());
+            table.setItems(sortedData);
+            rowCounterLabel.setText("Количество записей: " + sortedData.size());
+        });
+    }
+
     private void initScrollPane() {
         // Add vertical and horizontal scrollPane
         ScrollPane sp = new ScrollPane(table);
-        sp.setPrefSize(600, 200);
+        sp.setPrefSize(1000, 700);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setFitToHeight(true);
         sp.setHmax(3);
-        sp.setHvalue(0);
-        sp.setDisable(false);
+        sp.setHvalue(3);
+//        sp.setDisable(false);
     }
 
     public void fillTable() {
         final String query = "SELECT g.block_number AS block, b.bt_name_ AS type, o.name_ AS state," +
-                "o.phone_ AS phone, EXTRACT (HOUR from o.last_time_)|| ':'" +
-                "         ||EXTRACT(MINUTE from o.last_time_)||' '" +
-                "         ||EXTRACT(DAY from o.last_time_)||'-'" +
-                "         ||EXTRACT(MONTH from o.last_time_)||'-'" +
-                "         ||EXTRACT(YEAR from o.last_time_)"+
-                "          AS time_ ,p.name_ AS pere, providers.name_ AS prov," +
+                "o.phone_ AS phone, SUBSTRING (100 + EXTRACT (DAY FROM o.last_time_) FROM 2 FOR 2)||'.'" +
+                "                 || SUBSTRING (100 + EXTRACT(MONTH FROM o.last_time_) FROM 2 FOR 2)||'.'" +
+                "                  || EXTRACT (YEAR FROM o.last_time_)||' '" +
+                "                  || SUBSTRING (100 + EXTRACT (HOUR FROM o.last_time_)FROM 2 FOR 2)||':'" +
+                "                  || SUBSTRING (100 + EXTRACT(MINUTE FROM o.last_time_) FROM 2 FOR 2)||':'" +
+                "                  || SUBSTRING (100 + EXTRACT(SECOND FROM o.last_time_) FROM 2 FOR 2) AS time_ ," +
+                "p.name_ AS pere, providers.name_ AS prov," +
                 "o.user_comment_ AS comm " +
                 "FROM granits g " +
                 "LEFT JOIN block_types b " +
@@ -193,7 +249,7 @@ public class NavigationBlock {
                         resultSet.getObject("time_"),
                         resultSet.getString("pere"),
                         resultSet.getString("prov"),
-                       resultSet.getString("comm")
+                        resultSet.getString("comm")
                 ));
 
             }
@@ -203,17 +259,21 @@ public class NavigationBlock {
         table.setItems(data);
     }
 
-    public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
-        final String query = "INSERT INTO bs (name ,lat ,lon ,azmth ) VALUES (?,?,?,?)";
+    public void addData(String numberInput, String typeString, String stateNumInput) {
+        final String subquery = ("SELECT ids_ FROM objects WHERE name_ = 'АХ52736')");
+        final String subquery2 = ("SELECT bt_id_ FROM block_types WHERE bt_name_ = 'Гранит/07'");
+        final String query = "INSERT INTO granits (block_number, block_type, oids_) VALUES (?,?,?)";
+        System.out.println(subquery);
+        System.out.println(subquery2);
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, nameText.getText());
-            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
-            preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
+            Statement query1 = connection.createStatement(subquery);
+            preparedStatement.setString(1, numberInput);
+            preparedStatement.setInt(2, Integer.parseInt(subquery));
+            preparedStatement.setInt(3, Integer.parseInt(subquery2));
             preparedStatement.execute();
             Notification.getSuccessAdd();
-            SubBus.getInstance().clearFields(nameText, lonText, latText, azmthText);
+            SubNavBlock.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -222,7 +282,7 @@ public class NavigationBlock {
     }
 
     public void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
-        final String query = "UPDATE bs SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
+        final String query = "UPDATE granits SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, nameText.getText());
@@ -232,7 +292,7 @@ public class NavigationBlock {
             preparedStatement.setInt(5, idValue);
             preparedStatement.execute();
             Notification.getSuccessEdit();
-            SubBus.getInstance().getStage().close();
+            SubNavBlock.getInstance().getStage().close();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -241,12 +301,12 @@ public class NavigationBlock {
     }
 
     private void deleteData(int idValue) {
-        final String query = "DELETE FROM bs WHERE id = ?";
+        final String query = "DELETE FROM granits WHERE block_number = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idValue);
             preparedStatement.executeUpdate();
-//            Notification.getSuccessDelete();
+            Notification.getSuccessDelete();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();

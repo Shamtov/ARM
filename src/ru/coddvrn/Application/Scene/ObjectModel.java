@@ -19,6 +19,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
@@ -48,7 +49,7 @@ public class ObjectModel {
     private ObservableList<ObjectTable> data = FXCollections.observableArrayList();
     // Create table
     private TableView<ObjectTable> table = new TableView<>();
-
+    private FilteredList<ObjectTable> filteredData = new FilteredList<>(data, e -> true);
     private Label rowCounterLabel = new Label();
 
     private void initColumns() {
@@ -99,7 +100,7 @@ public class ObjectModel {
         registrationTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
 
         TableColumn statusColumn = new TableColumn("Состояние");
-        statusColumn.setPrefWidth(120);
+        statusColumn.setPrefWidth(140);
         statusColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("status"));
 
         TableColumn phoneColumn = new TableColumn("Номер телефона");
@@ -116,29 +117,25 @@ public class ObjectModel {
         table.setTableMenuButtonVisible(true);
         table.setEditable(false);
 
-        /*table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                if (event.getClickCount() > 1) {
-                }
-            }
-        });*/
+    }
+
+    private void setStatusColor(TableColumn statusColumn) {
         statusColumn.setCellFactory(column -> {
             return new TableCell<ObjectTable, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     if (item == null || empty) {
-                        setText(null);
+//                        setText(item);
                         setStyle("");
                     } else if (item.contains("Выведен")) {
-                        setText(item);
+                        setStyle("-fx-background-color: rgb(247,162,176)");
                         setTextFill(Color.BLACK);
-                        setStyle("-fx-background-color: rgb(241,35,30)");
+                        setText(item);
                     } else {
-                        setText(item);
+                        setStyle("-fx-background-color: rgb(146,222,156)");
                         setTextFill(Color.BLACK);
-                        setStyle("-fx-background-color: rgb(23,187,43)");
+                        setText(item);
                     }
                 }
             };
@@ -154,9 +151,10 @@ public class ObjectModel {
         Stage objStage = new Stage();
         objStage.initModality(Modality.WINDOW_MODAL);
 //        objStage.setFullScreen(true);
-        objStage.setTitle("Справочник навигационных блоков");
+        objStage.setTitle("Справочник объектов");
         initColumns();
         fillTable();
+        setStatusColor(table.getColumns().get(10));
         // Add vertical and horizontal scrollPane
         initScrollPane();
         initRowsCounter();
@@ -183,7 +181,7 @@ public class ObjectModel {
         delete.setOnAction(event -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             DialogPane pane = alert.getDialogPane();
-            pane.setPrefSize(400.0, 120.0);
+            pane.setPrefSize(350.0, 120.0);
             alert.setResizable(true);
             alert.setTitle("Подтверждение");
             alert.setHeaderText(null);
@@ -197,40 +195,29 @@ public class ObjectModel {
         Button refresh = new Button("Обновить", IconsLoader.getInstance().getRefreshIcon());
         refresh.setOnAction(event -> refreshTable());
 
-        TextField searchField = new TextField();
-        searchField.setPromptText("поиск по номеру");
-        searchField.setMinWidth(200);
-        FilteredList<ObjectTable> filteredData = new FilteredList<>(data, e -> true);
-//        searchField.setOnKeyPressed(event -> {
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-                    filteredData.setPredicate((Predicate<? super ObjectTable>) obj -> {
-                        if (newValue == null || newValue.isEmpty()) {
-                            return true;
-                        }
-                        String lowerCaseFilter = newValue.toLowerCase();
-                        if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter)) {
-                            return true;
-                        }
-                        return false;
-                    });
-                    SortedList<ObjectTable> sortedData = new SortedList<>(filteredData);
-                    sortedData.comparatorProperty().bind(table.comparatorProperty());
-                    table.setItems(sortedData);
-                });
+        rowCounterLabel.setFont(new Font("Arial", 14));
 
-                rowCounterLabel.setFont(new Font("Arial", 14));
-        HBox hbox = new HBox(15);
+        TextField searchField = new TextField();
+        searchField.setPromptText("Поиск по номеру или телефону");
+        searchField.setMinWidth(200);
+        searchByItem(searchField);
+
         VBox searchBox = new VBox();
         searchBox.setPadding(new Insets(17, 0, 0, 0));
         searchBox.getChildren().add(searchField);
+
+        HBox hbox = new HBox(15);
         hbox.getChildren().addAll(add, edit, delete, refresh, searchBox);
         hbox.setPadding(new Insets(10, 10, 10, 10));
+
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
         stackPane.setPadding(new Insets(10, 10, 15, 10));
+
         HBox rowCounterHbox = new HBox();
         rowCounterHbox.getChildren().add(rowCounterLabel);
         rowCounterHbox.setPadding(new Insets(10, 0, 10, 10));
+
         BorderPane root = new BorderPane();
         root.setTop(hbox);
         root.setCenter(stackPane);
@@ -245,13 +232,33 @@ public class ObjectModel {
     private void initScrollPane() {
         // Add vertical and horizontal scrollPane
         ScrollPane sp = new ScrollPane(table);
-        sp.setPrefSize(600, 200);
+        sp.setPrefSize(1080, 720);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setFitToHeight(true);
-        sp.setHmax(10);
-        sp.setHvalue(10);
-        sp.setDisable(false);
+        sp.setHmax(3);
+        sp.setHvalue(3);
+    }
+
+    private void searchByItem(TextField searchField) {
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate((Predicate<? super ObjectTable>) obj -> {
+                String lowerCaseFilter = newValue.toLowerCase();
+                if (newValue == null || newValue.isEmpty())
+                    return true;
+                 else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
+                    return true;
+                 else if (String.valueOf(obj.getPhoneNumber()).contains(lowerCaseFilter))
+                    return true;
+
+                return false;
+            });
+            SortedList<ObjectTable> sortedData = new SortedList<>(filteredData);
+            sortedData.comparatorProperty().bind(table.comparatorProperty());
+            table.setItems(sortedData);
+            rowCounterLabel.setText("Количество записей: " + sortedData.size());
+            setStatusColor(table.getColumns().get(10));
+        });
     }
 
     public void fillTable() {
@@ -274,12 +281,12 @@ public class ObjectModel {
                 "   || SUBSTRING (100 + EXTRACT(MONTH FROM  o.date_inserted_) FROM 2 FOR 2)||'.'" +
                 "   || EXTRACT (YEAR FROM  o.date_inserted_) AS registrDate," +
                 "       CASE o.obj_output_" +
-                "         WHEN 0 THEN 'Выведен'" +
+                "         WHEN 1 THEN 'Выведен'" +
                 "         ||' ('" +
                 "         ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'" +
                 "         ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'" +
                 "         ||EXTRACT(year from o.obj_output_date_)||')'" +
-                "         WHEN 1 THEN 'Активен'" +
+                "         WHEN 0 THEN 'Активен'" +
                 "       END AS status," +
                 "       o.phone_ AS phone, o.user_comment_ AS comment " +
                 "FROM objects o " +

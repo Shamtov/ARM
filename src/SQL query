@@ -43,12 +43,12 @@ SELECT o.name_ AS state, car_brand.cb_name_ AS brand, o.year_release_ AS year_, 
                          || SUBSTRING (100 + EXTRACT(MONTH FROM  o.date_inserted_) FROM 2 FOR 2)||'.'
                          || EXTRACT (YEAR FROM  o.date_inserted_) AS registrDate,
                          CASE o.obj_output_
-                         WHEN 0 THEN 'Выведен'
+                         WHEN 1 THEN 'Выведен'
                          ||' ('
                          ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'
                          ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'
                          ||EXTRACT(year from o.obj_output_date_)||')'
-                        WHEN 1 THEN 'Активен'
+                        WHEN 0 THEN 'Активен'
                        END AS status,
                        o.phone_ AS phone, o.user_comment_ AS comment
                 FROM objects o

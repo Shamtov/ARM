@@ -3,6 +3,8 @@ package ru.coddvrn.Application.Scene;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -12,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -23,6 +26,7 @@ import ru.coddvrn.Application.Scene.SubScene.SubRoute;
 
 import java.sql.*;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 public class Route {
     private Route() {
@@ -38,10 +42,9 @@ public class Route {
 
     // Create data Collection
     private ObservableList<RoutesTable> data = FXCollections.observableArrayList();
-
     // Create table
     private TableView<RoutesTable> table = new TableView<>();
-
+    private FilteredList<RoutesTable> filteredData = new FilteredList<>(data, e -> true);
     private Label rowCounterLabel = new Label();
 
     private void initColumns() {
@@ -115,11 +118,13 @@ public class Route {
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         delete.setOnAction(event -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            DialogPane pane = alert.getDialogPane();
+            pane.setPrefSize(450.0, 120.0);
+            alert.setResizable(true);
             alert.setTitle("Подтверждение");
             alert.setHeaderText(null);
-            alert.setContentText("Вы действительно хотите удалить запись?");
+            alert.setContentText("Вы действительно хотите удалить маршрут с номером " + table.getSelectionModel().getSelectedItem().getRouteName() + " ?");
             Optional<ButtonType> action = alert.showAndWait();
-
             if (action.get() == ButtonType.OK) {
                 deleteData(table.getSelectionModel().getSelectedItem().getRouteName());
             }
@@ -128,8 +133,19 @@ public class Route {
         refresh.setOnAction(event -> refreshTable());
 
         rowCounterLabel.setFont(new Font("Arial", 14));
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Поиск по маршруту");
+        searchField.setMinWidth(200);
+        searchByItem(searchField);
+
         HBox hbox = new HBox(15);
-        hbox.getChildren().addAll(add, edit, delete, refresh);
+
+        VBox searchBox = new VBox();
+        searchBox.setPadding(new Insets(17, 0, 0, 0));
+        searchBox.getChildren().add(searchField);
+
+        hbox.getChildren().addAll(add, edit, delete, refresh, searchBox);
         hbox.setPadding(new Insets(10, 10, 10, 10));
         StackPane stackPane = new StackPane();
         stackPane.getChildren().addAll(table);
@@ -142,7 +158,7 @@ public class Route {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene dirStopsScene = new Scene(root, 800, 800);
+        Scene dirStopsScene = new Scene(root, 900, 800);
         routesStage.setScene(dirStopsScene);
         routesStage.show();
         routesStage.setOnCloseRequest(event -> data.clear());
@@ -159,6 +175,22 @@ public class Route {
         sp.setHvalue(0);
         sp.setDisable(false);
     }
+    private void searchByItem(TextField searchField){
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate((Predicate<? super RoutesTable>) obj -> {
+                String lowerCaseFilter = newValue.toLowerCase();
+                if (newValue == null || newValue.isEmpty())
+                    return true;
+                else if (obj.getRouteName().toLowerCase().contains(lowerCaseFilter))
+                    return true;
+
+                return false;
+            });
+            SortedList<RoutesTable> sortedData = new SortedList<>(filteredData);
+            sortedData.comparatorProperty().bind(table.comparatorProperty());
+            table.setItems(sortedData);
+            rowCounterLabel.setText("Количество записей: "+ sortedData.size());
+        });}
 
     public void fillTable() {
         final String query = "SELECT routs.name_,(SELECT count(*) FROM bs_route WHERE bs_route.route_id = routs.id_) AS counter, " +
@@ -181,15 +213,15 @@ public class Route {
         table.setItems(data);
     }
 
-    public void addData(TextField nameValue, TextField countValue, TextField statusValue) {
+    public void addData(TextField nameValue, int statusValue) {
         final String query = "INSERT INTO routs (name_,route_active_) VALUES (?,?)";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, nameValue.getText());
-            preparedStatement.setString(2, statusValue.getText());
+            preparedStatement.setInt(2, statusValue);
             preparedStatement.execute();
             Notification.getSuccessAdd();
-            SubRoute.getInstance().clearFields(nameValue, statusValue);
+            SubRoute.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -197,12 +229,12 @@ public class Route {
         }
     }
 
-    public void updateData(TextField newNameValue, TextField statusValue, String oldNameValue) {
+    public void updateData(TextField newNameValue, int statusValue, String oldNameValue) {
         final String query = "UPDATE routs SET name_ = ? ,route_active_ = ? WHERE name_ = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, newNameValue.getText());
-            preparedStatement.setString(2, statusValue.getText());
+            preparedStatement.setInt(2, statusValue);
             preparedStatement.setString(3, oldNameValue);
             preparedStatement.execute();
             Notification.getSuccessEdit();
