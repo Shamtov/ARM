@@ -30,6 +30,7 @@ import java.util.function.Predicate;
 
 public class Route {
     private Route() {
+        initColumns();
     }
 
     private static Route instance;
@@ -88,8 +89,7 @@ public class Route {
         Stage routesStage = new Stage();
         routesStage.initModality(Modality.WINDOW_MODAL);
         routesStage.setTitle("Справочник маршрутов");
-        initColumns();
-        fillTable();
+        refreshTable();
         // Add vertical and horizontal scrollPane
         initScrollPane();
         initRowsCounter();
@@ -158,10 +158,13 @@ public class Route {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene dirStopsScene = new Scene(root, 900, 800);
-        routesStage.setScene(dirStopsScene);
+        Scene routeScene = new Scene(root, 800, 800);
+
+        routesStage.setScene(routeScene);
+        routesStage.setOnCloseRequest(event -> {
+            data.clear();
+        });
         routesStage.show();
-        routesStage.setOnCloseRequest(event -> data.clear());
     }
 
     private void initScrollPane() {
@@ -220,12 +223,12 @@ public class Route {
             preparedStatement.setString(1, nameValue.getText());
             preparedStatement.setInt(2, statusValue);
             preparedStatement.execute();
-            Notification.getSuccessAdd();
+            new Notification().getSuccessAdd();
             SubRoute.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorAdd(exception);
+            new Notification().getErrorAdd(exception);
         }
     }
 
@@ -237,12 +240,12 @@ public class Route {
             preparedStatement.setInt(2, statusValue);
             preparedStatement.setString(3, oldNameValue);
             preparedStatement.execute();
-            Notification.getSuccessEdit();
             SubRoute.getInstance().getStage().close();
             refreshTable();
+            new Notification().getSucessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorEdit(exception);
+            new Notification().getErrorEdit(exception);
         }
     }
 
@@ -252,11 +255,11 @@ public class Route {
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, nameValue);
             preparedStatement.executeUpdate();
-            Notification.getSuccessDelete();
+            new Notification().getSuccessDelete();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorDelete(exception);
+            new Notification().getErrorDelete(exception);
         }
     }
 

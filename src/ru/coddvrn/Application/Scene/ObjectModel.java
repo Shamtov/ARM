@@ -1,25 +1,20 @@
 package ru.coddvrn.Application.Scene;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Connection.Connect;
@@ -35,6 +30,7 @@ import java.util.function.Predicate;
 public class ObjectModel {
     // Singleton
     private ObjectModel() {
+        initColumns();
     }
 
     private static ObjectModel instance;
@@ -152,7 +148,6 @@ public class ObjectModel {
         objStage.initModality(Modality.WINDOW_MODAL);
 //        objStage.setFullScreen(true);
         objStage.setTitle("Справочник объектов");
-        initColumns();
         fillTable();
         setStatusColor(table.getColumns().get(10));
         // Add vertical and horizontal scrollPane
@@ -226,7 +221,9 @@ public class ObjectModel {
         Scene navBlockScene = new Scene(root, 1080, 720);
         objStage.setScene(navBlockScene);
         objStage.show();
-        objStage.setOnCloseRequest(event -> data.clear());
+        objStage.setOnCloseRequest(event -> {
+            data.clear();
+        });
     }
 
     private void initScrollPane() {
@@ -332,12 +329,12 @@ public class ObjectModel {
             preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.execute();
-            Notification.getSuccessAdd();
+            new Notification().getSuccessAdd();
 //            SubObject.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorAdd(exception);
+            new Notification().getErrorAdd(exception);
         }
     }
 
@@ -351,12 +348,12 @@ public class ObjectModel {
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.setInt(5, idValue);
             preparedStatement.execute();
-            Notification.getSuccessEdit();
 //            SubObject.getInstance().getStage().close();
             refreshTable();
+            new Notification().getSucessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorEdit(exception);
+            new Notification().getErrorEdit(exception);
         }
     }
 
@@ -366,11 +363,11 @@ public class ObjectModel {
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, stateName);
             preparedStatement.executeUpdate();
-            Notification.getSuccessDelete();
+            new Notification().getSuccessDelete();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorDelete(exception);
+            new Notification().getErrorDelete(exception);
         }
     }
 

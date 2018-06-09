@@ -22,7 +22,6 @@ import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.NavigationBlockTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
-import ru.coddvrn.Application.Scene.SubScene.SubBus;
 import ru.coddvrn.Application.Scene.SubScene.SubNavBlock;
 
 import java.sql.*;
@@ -32,6 +31,7 @@ import java.util.function.Predicate;
 public class NavigationBlock {
     // Singleton
     private NavigationBlock() {
+        initColumns();
     }
 
     private static NavigationBlock instance;
@@ -87,18 +87,16 @@ public class NavigationBlock {
         table.getColumns().addAll(blockNumberColumn, blockTypeColumn, stateNumberColumn, phoneColumn, timeColumn, carrierColumn, installerColumn, commentsColumn);
         table.setTableMenuButtonVisible(true);
         table.setEditable(false);
-        /*table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+        table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 if (event.getClickCount() > 1) {
-                    SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
-                            table.getSelectionModel().getSelectedItem().getName(),
-                            table.getSelectionModel().getSelectedItem().getLat(),
-                            table.getSelectionModel().getSelectedItem().getLon(),
-                            table.getSelectionModel().getSelectedItem().getAzmth());
+                    SubNavBlock.getInstance().display(table.getSelectionModel().getSelectedItem().getBlockNumber(),
+                            table.getSelectionModel().getSelectedItem().getBlockType(),
+                            table.getSelectionModel().getSelectedItem().getStateNumber());
                 }
             }
-        });*/
+        });
     }
 
     private void initRowsCounter() {
@@ -110,7 +108,6 @@ public class NavigationBlock {
         Stage navBlockStage = new Stage();
         navBlockStage.initModality(Modality.WINDOW_MODAL);
         navBlockStage.setTitle("Справочник навигационных блоков");
-        initColumns();
         fillTable();
         // Add vertical and horizontal scrollPane
         initScrollPane();
@@ -127,11 +124,9 @@ public class NavigationBlock {
 
         Button edit = new Button("Изменить...", IconsLoader.getInstance().getEditIcon());
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        /*edit.setOnAction(event -> SubBus.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
-                table.getSelectionModel().getSelectedItem().getName(),
-                table.getSelectionModel().getSelectedItem().getLat(),
-                table.getSelectionModel().getSelectedItem().getLon(),
-                table.getSelectionModel().getSelectedItem().getAzmth()));*/
+        edit.setOnAction(event -> SubNavBlock.getInstance().display(table.getSelectionModel().getSelectedItem().getBlockNumber(),
+                table.getSelectionModel().getSelectedItem().getBlockType(),
+                table.getSelectionModel().getSelectedItem().getStateNumber()));
 
         Button delete = new Button("Удалить", IconsLoader.getInstance().getDeleteIcon());
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
@@ -215,7 +210,6 @@ public class NavigationBlock {
         sp.setFitToHeight(true);
         sp.setHmax(3);
         sp.setHvalue(3);
-//        sp.setDisable(false);
     }
 
     public void fillTable() {
@@ -256,47 +250,47 @@ public class NavigationBlock {
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
+
         table.setItems(data);
     }
 
     public void addData(String numberInput, String typeString, String stateNumInput) {
-        final String subquery = ("SELECT ids_ FROM objects WHERE name_ = 'АХ52736')");
-        final String subquery2 = ("SELECT bt_id_ FROM block_types WHERE bt_name_ = 'Гранит/07'");
-        final String query = "INSERT INTO granits (block_number, block_type, oids_) VALUES (?,?,?)";
-        System.out.println(subquery);
-        System.out.println(subquery2);
+        final String query = "INSERT INTO granits (block_number, block_type, oids_) VALUES (?," +
+                "(SELECT bt_id_ FROM block_types WHERE bt_name_ = ?)," +
+                "(SELECT ids_ FROM objects WHERE name_ = ?))";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            Statement query1 = connection.createStatement(subquery);
             preparedStatement.setString(1, numberInput);
-            preparedStatement.setInt(2, Integer.parseInt(subquery));
-            preparedStatement.setInt(3, Integer.parseInt(subquery2));
+            preparedStatement.setString(2, typeString);
+            preparedStatement.setString(3, stateNumInput);
             preparedStatement.execute();
-            Notification.getSuccessAdd();
+            new Notification().getSuccessAdd();
             SubNavBlock.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorAdd(exception);
+            new Notification().getErrorAdd(exception);
         }
     }
 
-    public void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
-        final String query = "UPDATE granits SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
+    public void updateData(String numberInput, String typeString, String stateNumInput, int oldNumber) {
+        final String query = "UPDATE granits SET block_number = ?, " +
+                " block_type = (SELECT bt_id_ FROM block_types WHERE bt_name_ = ?)," +
+                " oids_ = (SELECT ids_ FROM objects WHERE name_ = ?)" +
+                " WHERE block_number = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, nameText.getText());
-            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
-            preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
-            preparedStatement.setInt(5, idValue);
+            preparedStatement.setString(1, numberInput);
+            preparedStatement.setString(2, typeString);
+            preparedStatement.setString(3, stateNumInput);
+            preparedStatement.setInt(4, oldNumber);
             preparedStatement.execute();
-            Notification.getSuccessEdit();
             SubNavBlock.getInstance().getStage().close();
             refreshTable();
+            new Notification().getSucessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorEdit(exception);
+            new Notification().getErrorEdit(exception);
         }
     }
 
@@ -306,11 +300,11 @@ public class NavigationBlock {
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idValue);
             preparedStatement.executeUpdate();
-            Notification.getSuccessDelete();
+            new Notification().getSuccessDelete();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorDelete(exception);
+            new Notification().getErrorDelete(exception);
         }
     }
 

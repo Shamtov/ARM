@@ -31,6 +31,7 @@ import java.util.function.Predicate;
 public class BusStop {
     // Singleton
     private BusStop() {
+        initColumns();
     }
 
     private static BusStop instance;
@@ -95,10 +96,9 @@ public class BusStop {
 
     public void display() {
         // New window (Stage)
-        Stage dirStopsStage = new Stage();
-        dirStopsStage.initModality(Modality.WINDOW_MODAL);
-        dirStopsStage.setTitle("Справочник остановок");
-        initColumns();
+        Stage stopsStage = new Stage();
+        stopsStage.initModality(Modality.WINDOW_MODAL);
+        stopsStage.setTitle("Справочник остановок");
         fillTable();
         // Add vertical and horizontal scrollPane
         initScrollPane();
@@ -169,9 +169,11 @@ public class BusStop {
         root.setBottom(rowCounterHbox);
         // Set scene
         Scene dirStopsScene = new Scene(root, 800, 800);
-        dirStopsStage.setScene(dirStopsScene);
-        dirStopsStage.show();
-        dirStopsStage.setOnCloseRequest(event -> data.clear());
+        stopsStage.setScene(dirStopsScene);
+        stopsStage.show();
+        stopsStage.setOnCloseRequest(event -> {
+            data.clear();
+        });
     }
 
     private void searchByItem(TextField searchField) {
@@ -233,12 +235,12 @@ public class BusStop {
             preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.execute();
-            Notification.getSuccessAdd();
-            SubBus.getInstance().clearFields(nameText, lonText, latText, azmthText);
+            new Notification().getSuccessAdd();
+            SubBus.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorAdd(exception);
+            new Notification().getErrorAdd(exception);
         }
     }
 
@@ -252,12 +254,12 @@ public class BusStop {
             preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
             preparedStatement.setInt(5, idValue);
             preparedStatement.execute();
-            Notification.getSuccessEdit();
             SubBus.getInstance().getStage().close();
             refreshTable();
+            new Notification().getSucessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorEdit(exception);
+            new Notification().getErrorEdit(exception);
         }
     }
 
@@ -267,11 +269,11 @@ public class BusStop {
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setInt(1, idValue);
             preparedStatement.executeUpdate();
-            Notification.getSuccessDelete();
+            new Notification().getSuccessDelete();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
-            Notification.getErrorDelete(exception);
+            new Notification().getErrorDelete(exception);
         }
     }
 

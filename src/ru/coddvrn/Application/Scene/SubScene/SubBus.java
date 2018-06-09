@@ -149,11 +149,11 @@ public class SubBus {
         Scene subDirStopsScene = new Scene(root, 450, 300);
         subDirStopsStage.setScene(subDirStopsScene);
         subDirStopsStage.show();
-        subDirStopsStage.setOnCloseRequest(event -> BusStop.getInstance().refreshTable());
+        subDirStopsStage.setOnCloseRequest(event -> clearFields());
 
     }
 
-    public void clearFields(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
+    public void clearFields() {
         nameText.clear();
         lonText.clear();
         latText.clear();

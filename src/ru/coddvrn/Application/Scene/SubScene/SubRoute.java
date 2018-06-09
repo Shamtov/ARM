@@ -40,6 +40,7 @@ public class SubRoute {
 
     private TextField nameText = new TextField();
     private TextField countText = new TextField();
+    private ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
 
     private Label label1 = new Label("Название маршрута");
     private Label label2 = new Label("Количество остановок");
@@ -47,7 +48,6 @@ public class SubRoute {
 
     public void display() {
         subRoutesStage.setTitle("Добавить");
-        ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
 
         GridPane root = new GridPane();
         root.setPadding(new Insets(20, 10, 10, 10));
@@ -78,6 +78,11 @@ public class SubRoute {
         statusBox.getSelectionModel().select(0);
 
         Button add = new Button("Сохранить");
+        add.setOnAction(keyEvent -> {
+            if (new ValidateFields().validateString(nameText.getText())) {
+                Route.getInstance().addData(nameText, statusBox.getSelectionModel().getSelectedIndex());
+            } else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+        });
         Button cancel = new Button("Отмена");
         cancel.setOnAction(event ->
                 subRoutesStage.close()
@@ -90,9 +95,11 @@ public class SubRoute {
         subRoutesScene.setOnKeyPressed(keyEvent -> {
                     switch (keyEvent.getCode()) {
                         case ENTER: {
-                            if (new ValidateFields().validateString(nameText.getText()))
+                            if ((new ValidateFields().validateString(nameText.getText())) &&
+                                    !(statusBox.getValue() != "")) {
                                 Route.getInstance().addData(nameText, statusBox.getSelectionModel().getSelectedIndex());
-                            else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+                            } else
+                                new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
                         }
                     }
                 }
@@ -104,7 +111,6 @@ public class SubRoute {
 
     public void display(String nameValue, int countValue, String statusValue, String oldNameValue) {
         subRoutesStage.setTitle("Изменить");
-        ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
         statusBox.getSelectionModel().select(statusValue);
 
         GridPane root = new GridPane();
@@ -139,10 +145,10 @@ public class SubRoute {
 
         Button add = new Button("Сохранить");
         add.setOnAction(event -> {
-            if (new ValidateFields().validateString(nameText.getText()))
+            if (new ValidateFields().validateString(nameText.getText())) {
                 Route.getInstance().updateData(nameText, statusBox.getSelectionModel().getSelectedIndex(), oldNameValue);
-            else {
-                new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+            } else {
+                new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пустым");
             }
         });
 
@@ -159,22 +165,26 @@ public class SubRoute {
         buttonBox.getChildren().addAll(add, cancel);
         root.add(buttonBox, 1, 4);
         Scene subRoutesScene = new Scene(root, 450, 250);
-        subRoutesScene.setOnKeyPressed(keyEvent -> {
+        subRoutesScene.setOnKeyReleased(keyEvent -> {
                     switch (keyEvent.getCode()) {
                         case ENTER: {
-                            if (new ValidateFields().validateString(nameText.getText()))
+                            if ((new ValidateFields().validateString(nameText.getText())) &&
+                                    (statusBox.getValue() != "")) {
                                 Route.getInstance().updateData(nameText, statusBox.getSelectionModel().getSelectedIndex(), oldNameValue);
-                            else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+                            } else
+                                new FormsAlerts().getWarningAlert("Отправка формы", "Все поля обязательны для заполнения");
                         }
                     }
                 }
         );
         subRoutesStage.setScene(subRoutesScene);
         subRoutesStage.show();
+        subRoutesStage.setOnCloseRequest(event -> clearFields());
     }
 
     public void clearFields() {
         nameText.clear();
+        statusBox.getSelectionModel().clearSelection();
     }
 }
 
