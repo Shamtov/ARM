@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.ObjectTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
@@ -31,6 +32,7 @@ public class ObjectModel {
     // Singleton
     private ObjectModel() {
         initColumns();
+        initScrollPane();
     }
 
     private static ObjectModel instance;
@@ -91,9 +93,9 @@ public class ObjectModel {
         installerColumn.setPrefWidth(100);
         installerColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("installer"));
 
-        TableColumn registrationTimeColumn = new TableColumn("Дата Регистрации");
-        registrationTimeColumn.setPrefWidth(120);
-        registrationTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
+        TableColumn registrationDateColumn = new TableColumn("Дата Регистрации");
+        registrationDateColumn.setPrefWidth(120);
+        registrationDateColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
 
         TableColumn statusColumn = new TableColumn("Состояние");
         statusColumn.setPrefWidth(140);
@@ -107,9 +109,9 @@ public class ObjectModel {
         commentsColumn.setPrefWidth(150);
         commentsColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("comment"));
         //Add columns to the table
-        table.getColumns().addAll(stateNumberColumn, carBrandColumn, yearReleasedColumn, carTypeColumn, lastTimeColumn,
-                routeColumn, speedColumn, lastStationTimeColumn, carrierColumn, installerColumn,
-                statusColumn, phoneColumn, commentsColumn);
+        table.getColumns().addAll(stateNumberColumn, routeColumn, statusColumn, lastTimeColumn,
+                lastStationTimeColumn, phoneColumn, commentsColumn, installerColumn, carrierColumn,
+                speedColumn, carTypeColumn, registrationDateColumn, yearReleasedColumn, carBrandColumn);
         table.setTableMenuButtonVisible(true);
         table.setEditable(false);
 
@@ -143,15 +145,14 @@ public class ObjectModel {
     }
 
     public void display() {
-        // New window (Stage)
+        // New window
         Stage objStage = new Stage();
-        objStage.initModality(Modality.WINDOW_MODAL);
+        objStage.initModality(Modality.APPLICATION_MODAL);
 //        objStage.setFullScreen(true);
         objStage.setTitle("Справочник объектов");
         fillTable();
-        setStatusColor(table.getColumns().get(10));
+        setStatusColor(table.getColumns().get(2));
         // Add vertical and horizontal scrollPane
-        initScrollPane();
         initRowsCounter();
         data.addListener(new ListChangeListener<ObjectTable>() {
             @Override
@@ -192,7 +193,8 @@ public class ObjectModel {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        TextField searchField = TextFields.createClearableTextField();
+        ;
         searchField.setPromptText("Поиск по номеру или телефону");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -218,11 +220,12 @@ public class ObjectModel {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene navBlockScene = new Scene(root, 1080, 720);
+        Scene navBlockScene = new Scene(root, 1080, 600);
         objStage.setScene(navBlockScene);
         objStage.show();
         objStage.setOnCloseRequest(event -> {
             data.clear();
+            filteredData.clear();
         });
     }
 
@@ -243,9 +246,9 @@ public class ObjectModel {
                 String lowerCaseFilter = newValue.toLowerCase();
                 if (newValue == null || newValue.isEmpty())
                     return true;
-                 else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
+                else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
                     return true;
-                 else if (String.valueOf(obj.getPhoneNumber()).contains(lowerCaseFilter))
+                else if (String.valueOf(obj.getPhoneNumber()).contentEquals(lowerCaseFilter))
                     return true;
 
                 return false;
@@ -298,19 +301,19 @@ public class ObjectModel {
             while (resultSet.next()) {
                 data.add(new ObjectTable(
                         resultSet.getString("state"),
-                        resultSet.getString("brand"),
-                        resultSet.getInt("year_"),
-                        resultSet.getString("type"),
-                        resultSet.getObject("lastTime"),
-                        resultSet.getShort("lastspeed"),
                         resultSet.getString("rout"),
-                        resultSet.getObject("lastTimeStation"),
-                        resultSet.getString("carrier"),
-                        resultSet.getString("installer"),
-                        resultSet.getString("registrDate"),
                         resultSet.getString("status"),
+                        resultSet.getObject("lastTime"),
+                        resultSet.getObject("lastTimeStation"),
                         resultSet.getLong("phone"),
-                        resultSet.getString("comment")
+                        resultSet.getString("comment"),
+                        resultSet.getString("installer"),
+                        resultSet.getString("carrier"),
+                        resultSet.getShort("lastspeed"),
+                        resultSet.getString("type"),
+                        resultSet.getString("registrDate"),
+                        resultSet.getInt("year_"),
+                        resultSet.getString("brand")
                 ));
 
             }
@@ -319,6 +322,7 @@ public class ObjectModel {
         }
         table.setItems(data);
     }
+
 
     public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
         final String query = "INSERT INTO bs (name ,lat ,lon ,azmth ) VALUES (?,?,?,?)";
@@ -350,7 +354,7 @@ public class ObjectModel {
             preparedStatement.execute();
 //            SubObject.getInstance().getStage().close();
             refreshTable();
-            new Notification().getSucessEdit();
+            new Notification().getSuccessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
             new Notification().getErrorEdit(exception);
@@ -372,7 +376,12 @@ public class ObjectModel {
     }
 
     public void refreshTable() {
+        /* if (filteredData.size() == 0) {*/
         data.clear();
         fillTable();
+       /* } else {
+            filteredData.clear();
+            fillTable(filteredData);
+        }*/
     }
 }

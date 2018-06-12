@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.BusStopTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
@@ -32,6 +33,7 @@ public class BusStop {
     // Singleton
     private BusStop() {
         initColumns();
+        initScrollPane();
     }
 
     private static BusStop instance;
@@ -97,11 +99,10 @@ public class BusStop {
     public void display() {
         // New window (Stage)
         Stage stopsStage = new Stage();
-        stopsStage.initModality(Modality.WINDOW_MODAL);
+        stopsStage.initModality(Modality.APPLICATION_MODAL);
         stopsStage.setTitle("Справочник остановок");
         fillTable();
         // Add vertical and horizontal scrollPane
-        initScrollPane();
         initRowsCounter();
         data.addListener(new ListChangeListener<BusStopTable>() {
             @Override
@@ -142,7 +143,7 @@ public class BusStop {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        TextField searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Найти улицу");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -168,11 +169,12 @@ public class BusStop {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene dirStopsScene = new Scene(root, 800, 800);
+        Scene dirStopsScene = new Scene(root, 800, 600);
         stopsStage.setScene(dirStopsScene);
         stopsStage.show();
         stopsStage.setOnCloseRequest(event -> {
             data.clear();
+            filteredData.clear();
         });
     }
 
@@ -256,7 +258,7 @@ public class BusStop {
             preparedStatement.execute();
             SubBus.getInstance().getStage().close();
             refreshTable();
-            new Notification().getSucessEdit();
+            new Notification().getSuccessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
             new Notification().getErrorEdit(exception);

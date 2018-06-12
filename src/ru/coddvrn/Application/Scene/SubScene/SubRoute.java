@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Alerts.FormsAlerts;
 import ru.coddvrn.Application.Repository.ListRep;
 import ru.coddvrn.Application.Scene.Route;
@@ -54,7 +55,7 @@ public class SubRoute {
         root.setHgap(25);
         root.setVgap(15);
 
-        label1.setFont(new Font("Arial", 14));
+        label1.setFont(new Font("SanSerif", 14));
         nameText = new TextField();
         nameText.setPromptText("Например, 1");
         nameText.setMinWidth(100);
@@ -62,7 +63,7 @@ public class SubRoute {
         root.add(label1, 0, 0);
         root.add(nameText, 1, 0);
 
-        label2.setFont(new Font("Arial", 14));
+        label2.setFont(new Font("SanSerif", 14));
         countText.setText("0");
         countText.setMinWidth(200);
         countText.setDisable(true);
@@ -70,7 +71,7 @@ public class SubRoute {
         root.add(label2, 0, 1);
         root.add(countText, 1, 1);
 
-        label3.setFont(new Font("Arial", 14));
+        label3.setFont(new Font("SanSerif", 14));
         GridPane.setHalignment(label3, HPos.CENTER);
         root.add(label3, 0, 2);
         root.add(statusBox, 1, 2);
@@ -81,7 +82,7 @@ public class SubRoute {
         add.setOnAction(keyEvent -> {
             if (new ValidateFields().validateString(nameText.getText())) {
                 Route.getInstance().addData(nameText, statusBox.getSelectionModel().getSelectedIndex());
-            } else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+            } else new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должны быть пустым");
         });
         Button cancel = new Button("Отмена");
         cancel.setOnAction(event ->
@@ -99,7 +100,7 @@ public class SubRoute {
                                     !(statusBox.getValue() != "")) {
                                 Route.getInstance().addData(nameText, statusBox.getSelectionModel().getSelectedIndex());
                             } else
-                                new FormsAlerts().getWarningAlert("Отправка формы", "Название маршрута не должно быть пыстым");
+                                new FormsAlerts().getWarningAlert("Отправка формы", "Поля не должны быть пустыми");
                         }
                     }
                 }
@@ -123,6 +124,7 @@ public class SubRoute {
         nameText.setText(nameValue);
         nameText.setPromptText("Например, 1");
         nameText.setMinWidth(100);
+        nameText = TextFields.createClearableTextField();
         GridPane.setHalignment(label1, HPos.CENTER);
         root.add(label1, 0, 0);
         root.add(nameText, 1, 0);

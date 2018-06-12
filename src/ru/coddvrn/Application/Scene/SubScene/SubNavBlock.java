@@ -7,15 +7,21 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.AutoCompletionBinding;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Alerts.FormsAlerts;
 import ru.coddvrn.Application.Repository.ListRep;
 import ru.coddvrn.Application.Scene.NavigationBlock;
 import ru.coddvrn.Application.Validate.ValidateFields;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class SubNavBlock {
     private SubNavBlock() {
@@ -51,31 +57,35 @@ public class SubNavBlock {
         gridPane.setHgap(25);
         gridPane.setVgap(15);
 
-        Label numberLabel = new Label("Номер блока");
-        numberLabel.setFont(new Font("Arial", 14));
+        Label numberLabel = new Label("Номер блока *");
+        numberLabel.setFont(new Font("SanSerif", 14));
         blockNumberText.setPromptText("6563");
         blockNumberText.setMinWidth(200);
+        blockNumberText = TextFields.createClearableTextField();
+
         GridPane.setHalignment(numberLabel, HPos.CENTER);
         gridPane.add(numberLabel, 0, 1);
         gridPane.add(blockNumberText, 1, 1);
-
-        Label typeLabel = new Label("Тип блока");
-        typeLabel.setFont(new Font("Arial", 14));
+        Label typeLabel = new Label("Тип блока *");
+        typeLabel.setFont(new Font("SanSerif", 14));
         GridPane.setHalignment(typeLabel, HPos.CENTER);
         gridPane.add(typeLabel, 0, 2);
         gridPane.add(typeBox, 1, 2);
 
-        Label stateLabel = new Label("Гос номер");
-        stateLabel.setFont(new Font("Arial", 14));
+        Label stateLabel = new Label("Гос номер *");
+        stateLabel.setFont(new Font("SanSerif", 14));
         stateNumberText.setPromptText("а000аа36");
         stateNumberText.setMinWidth(150);
         GridPane.setHalignment(stateLabel, HPos.CENTER);
+        stateNumberText = TextFields.createClearableTextField();
+        TextFields.bindAutoCompletion(stateNumberText, new ListRep().getPossibleStates());
         gridPane.add(stateLabel, 0, 3);
         gridPane.add(stateNumberText, 1, 3);
 
         Label commentLabel = new Label("Комментарий");
-        commentLabel.setFont(new Font("Arial", 14));
+        commentLabel.setFont(new Font("SanSerif", 14));
         GridPane.setHalignment(commentText, HPos.CENTER);
+        commentText = TextFields.createClearableTextField();
         gridPane.add(commentLabel, 0, 4);
         gridPane.add(commentText, 1, 4);
         return gridPane;
@@ -84,16 +94,19 @@ public class SubNavBlock {
     public void display() {
         GridPane root = initScene();
 
+        commentText.setDisable(true);
         subNavStage.setTitle("Добавить");
         Button add = new Button("Сохранить");
         add.setOnAction(event -> {
             if ((new ValidateFields().validateString(blockNumberText.getText())) &&
                     (new ValidateFields().validateString(stateNumberText.getText()) &&
-                            (typeBox.getValue() != "")))
+                            (typeBox.getValue() != null)))
                 NavigationBlock.getInstance().addData(blockNumberText.getText(),
                         (String) typeBox.getSelectionModel().getSelectedItem(),
-                        stateNumberText.getText(),
-                        commentText.getText());
+                        stateNumberText.getText());
+            else
+                new FormsAlerts().getWarningAlert("Отправка формы", "Поля с * не должны быть пустыми");
+
         });
         Button cancel = new Button("Отмена");
         cancel.setOnAction(event -> {
@@ -111,12 +124,13 @@ public class SubNavBlock {
                         case ENTER: {
                             if ((new ValidateFields().validateString(blockNumberText.getText())) &&
                                     (new ValidateFields().validateString(stateNumberText.getText()) &&
-                                            (typeBox.getValue() != "")))
+                                            (typeBox.getValue() != null)))
                                 NavigationBlock.getInstance().addData(blockNumberText.getText(),
                                         (String) typeBox.getSelectionModel().getSelectedItem(),
-                                        stateNumberText.getText(),
-                                        commentText.getText());
-                            else new FormsAlerts().getWarningAlert("Отправка формы", "Все поля обязательны для заполнения");
+                                        stateNumberText.getText());
+                            else
+                                new FormsAlerts().getWarningAlert("Отправка формы", "Поля с * не должны быть пустыми");
+
                         }
                     }
                 }
@@ -139,14 +153,14 @@ public class SubNavBlock {
         add.setOnAction(event -> {
             if ((new ValidateFields().validateString(blockNumberText.getText())) &&
                     (new ValidateFields().validateString(stateNumberText.getText()) &&
-                            (typeBox.getValue() != "")))
+                            (typeBox.getValue() != null)))
                 NavigationBlock.getInstance().updateData(blockNumberText.getText(),
                         (String) typeBox.getValue(),
                         stateNumberText.getText(),
                         block,
                         commentText.getText());
             else
-                new FormsAlerts().getWarningAlert("Отправка формы", "Все поля обязательны для заполнения");
+                new FormsAlerts().getWarningAlert("Отправка формы", "Поля с * не должны быть пустыми");
         });
         Button cancel = new Button("Отмена");
         cancel.setOnAction(event -> {
@@ -171,7 +185,8 @@ public class SubNavBlock {
                                         block,
                                         commentText.getText());
                             else
-                                new FormsAlerts().getWarningAlert("Отправка формы", "Все поля обязательны для заполнения");
+                                new FormsAlerts().getWarningAlert("Отправка формы", "Поля с * не должны быть пустыми");
+
                         }
                     }
                 }

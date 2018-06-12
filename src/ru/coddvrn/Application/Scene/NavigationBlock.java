@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.NavigationBlockTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
@@ -32,6 +33,7 @@ public class NavigationBlock {
     // Singleton
     private NavigationBlock() {
         initColumns();
+        initScrollPane();
     }
 
     private static NavigationBlock instance;
@@ -93,7 +95,8 @@ public class NavigationBlock {
                 if (event.getClickCount() > 1) {
                     SubNavBlock.getInstance().display(table.getSelectionModel().getSelectedItem().getBlockNumber(),
                             table.getSelectionModel().getSelectedItem().getBlockType(),
-                            table.getSelectionModel().getSelectedItem().getStateNumber());
+                            table.getSelectionModel().getSelectedItem().getStateNumber(),
+                            table.getSelectionModel().getSelectedItem().getComment());
                 }
             }
         });
@@ -106,11 +109,10 @@ public class NavigationBlock {
     public void display() {
         // New window (Stage)
         Stage navBlockStage = new Stage();
-        navBlockStage.initModality(Modality.WINDOW_MODAL);
+        navBlockStage.initModality(Modality.APPLICATION_MODAL);
         navBlockStage.setTitle("Справочник навигационных блоков");
         fillTable();
         // Add vertical and horizontal scrollPane
-        initScrollPane();
         initRowsCounter();
         data.addListener(new ListChangeListener<NavigationBlockTable>() {
             @Override
@@ -126,7 +128,8 @@ public class NavigationBlock {
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         edit.setOnAction(event -> SubNavBlock.getInstance().display(table.getSelectionModel().getSelectedItem().getBlockNumber(),
                 table.getSelectionModel().getSelectedItem().getBlockType(),
-                table.getSelectionModel().getSelectedItem().getStateNumber()));
+                table.getSelectionModel().getSelectedItem().getStateNumber(),
+                table.getSelectionModel().getSelectedItem().getComment()));
 
         Button delete = new Button("Удалить", IconsLoader.getInstance().getDeleteIcon());
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
@@ -137,7 +140,7 @@ public class NavigationBlock {
             alert.setResizable(true);
             alert.setTitle("Подтверждение");
             alert.setHeaderText(null);
-            alert.setContentText("Вы действительно хотите удалить блок(-и) с номером " + table.getSelectionModel().getSelectedItem().getBlockNumber() + " ?");
+            alert.setContentText("Вы действительно хотите удалить блок с номером " + table.getSelectionModel().getSelectedItem().getBlockNumber() + " ?");
             Optional<ButtonType> action = alert.showAndWait();
 
             if (action.get() == ButtonType.OK) {
@@ -149,7 +152,7 @@ public class NavigationBlock {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        TextField searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Поиск по блоку или номеру");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -175,10 +178,13 @@ public class NavigationBlock {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene NavBlockScene = new Scene(root, 1000, 700);
+        Scene NavBlockScene = new Scene(root, 1000, 600);
         navBlockStage.setScene(NavBlockScene);
         navBlockStage.show();
-        navBlockStage.setOnCloseRequest(event -> data.clear());
+        navBlockStage.setOnCloseRequest(event -> {
+            data.clear();
+            filteredData.clear();
+        });
     }
 
     private void searchByItem(TextField searchField) {
@@ -273,21 +279,26 @@ public class NavigationBlock {
         }
     }
 
-    public void updateData(String numberInput, String typeString, String stateNumInput, int oldNumber) {
+    public void updateData(String numberInput, String typeString, String stateNumInput, int oldNumber, String comment) {
         final String query = "UPDATE granits SET block_number = ?, " +
                 " block_type = (SELECT bt_id_ FROM block_types WHERE bt_name_ = ?)," +
                 " oids_ = (SELECT ids_ FROM objects WHERE name_ = ?)" +
                 " WHERE block_number = ?";
+        final String commentUpdate = "UPDATE objects SET user_comment_ = ? WHERE name_ = ?";
         try (Connection connection = Connect.getConnect();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+             PreparedStatement preparedStatement1 = connection.prepareStatement(commentUpdate)) {
             preparedStatement.setString(1, numberInput);
             preparedStatement.setString(2, typeString);
             preparedStatement.setString(3, stateNumInput);
             preparedStatement.setInt(4, oldNumber);
             preparedStatement.execute();
+            preparedStatement1.setString(1,comment);
+            preparedStatement1.setString(2,stateNumInput);
+            preparedStatement1.execute();
             SubNavBlock.getInstance().getStage().close();
             refreshTable();
-            new Notification().getSucessEdit();
+            new Notification().getSuccessEdit();
         } catch (SQLException exception) {
             exception.printStackTrace();
             new Notification().getErrorEdit(exception);
