@@ -7,6 +7,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import ru.coddvrn.Application.Scene.SubScene.InstallerReport;
 
 public class ApplicationMenu {
 
@@ -15,7 +16,7 @@ public class ApplicationMenu {
         // Create menus
         Menu plansMenu = new Menu("Планы");
         Menu dispMenu = new Menu("Диспетчеризация");
-        Menu directoryMenu = new Menu("Справочники",IconsLoader.getInstance().getDirectoryIcon());
+        Menu directoryMenu = new Menu("Справочники", IconsLoader.getInstance().getDirectoryIcon());
         Menu reportMenu = new Menu("Отчётность");
         Menu serviceMenu = new Menu("Сервис");
         Menu exitMenu = new Menu("Выход", IconsLoader.getInstance().getLogoutIcon());
@@ -53,6 +54,7 @@ public class ApplicationMenu {
         directoryOfNavigationBlockItem.setOnAction(event -> NavigationBlock.getInstance().display());
 
         MenuItem reportingControlItem = new MenuItem("Контроль выполнения отчетов");
+        reportingControlItem.setOnAction(event -> new InstallerReport().display());
 
         MenuItem objectOperationsLogItem = new MenuItem("Журнал операций над объектами");
 
@@ -65,7 +67,8 @@ public class ApplicationMenu {
         // Add menuItems to the Menus
         plansMenu.getItems().addAll(planItem, separator, plansTemplateItem);
         dispMenu.getItems().addAll(releaseRouteItem, routeAssignmentItem);
-        directoryMenu.getItems().addAll(directoryOfStopsItem, directoryOfRoutesItem, directoryOfObjectsItem, /*directoryOfVehicleModelsItem, separator3, directoryOfCarriersItem, directoryOfContractsItem,*/ directoryOfNavigationBlockItem, separator2);
+        directoryMenu.getItems().addAll(directoryOfStopsItem, directoryOfRoutesItem, separator2, directoryOfObjectsItem,
+                /*directoryOfVehicleModelsItem, separator3, directoryOfCarriersItem, directoryOfContractsItem,*/ directoryOfNavigationBlockItem);
         reportMenu.getItems().addAll(reportingControlItem);
         serviceMenu.getItems().addAll(objectOperationsLogItem);
         exitMenu.getItems().add(exitItem);

@@ -12,7 +12,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import ru.coddvrn.Application.Alerts.FormsAlerts;
-import ru.coddvrn.Application.Repository.ListRep;
+import ru.coddvrn.Application.Repository.List;
 import ru.coddvrn.Application.Scene.Route;
 import ru.coddvrn.Application.Validate.ValidateFields;
 
@@ -40,7 +40,7 @@ public class SubRoute {
 
     private TextField nameText = new TextField();
     private TextField countText = new TextField();
-    private ComboBox statusBox = new ComboBox(new ListRep().getStatusList());
+    private ComboBox statusBox = new ComboBox(new List().getStatusList());
 
     private Label label1 = new Label("Название маршрута");
     private Label label2 = new Label("Количество остановок");
@@ -90,7 +90,7 @@ public class SubRoute {
         HBox buttonBox = new HBox(20);
         buttonBox.getChildren().addAll(add, cancel);
         root.add(buttonBox, 1, 4);
-        Scene subRoutesScene = new Scene(root, 450, 250);
+        Scene subRoutesScene = new Scene(root, 420, 200);
 
         subRoutesScene.setOnKeyPressed(keyEvent -> {
                     switch (keyEvent.getCode()) {

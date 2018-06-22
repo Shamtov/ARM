@@ -17,10 +17,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.ObjectTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
+import ru.coddvrn.Application.Repository.Query;
 import ru.coddvrn.Application.Scene.SubScene.SubObject;
 
 import java.sql.*;
@@ -31,6 +33,7 @@ public class ObjectModel {
     // Singleton
     private ObjectModel() {
         initColumns();
+        initScrollPane();
     }
 
     private static ObjectModel instance;
@@ -39,6 +42,12 @@ public class ObjectModel {
         if (instance == null)
             instance = new ObjectModel();
         return instance;
+    }
+
+    private TextField searchField;
+
+    public String getSearchValue() {
+        return searchField.getText();
     }
 
     // Create data Collection
@@ -91,9 +100,9 @@ public class ObjectModel {
         installerColumn.setPrefWidth(100);
         installerColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("installer"));
 
-        TableColumn registrationTimeColumn = new TableColumn("Дата Регистрации");
-        registrationTimeColumn.setPrefWidth(120);
-        registrationTimeColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
+        TableColumn registrationDateColumn = new TableColumn("Дата Регистрации");
+        registrationDateColumn.setPrefWidth(120);
+        registrationDateColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("dateInserted"));
 
         TableColumn statusColumn = new TableColumn("Состояние");
         statusColumn.setPrefWidth(140);
@@ -107,9 +116,9 @@ public class ObjectModel {
         commentsColumn.setPrefWidth(150);
         commentsColumn.setCellValueFactory(new PropertyValueFactory<ObjectTable, String>("comment"));
         //Add columns to the table
-        table.getColumns().addAll(stateNumberColumn, carBrandColumn, yearReleasedColumn, carTypeColumn, lastTimeColumn,
-                routeColumn, speedColumn, lastStationTimeColumn, carrierColumn, installerColumn,
-                statusColumn, phoneColumn, commentsColumn);
+        table.getColumns().addAll(stateNumberColumn, routeColumn, statusColumn, lastTimeColumn,
+                lastStationTimeColumn, phoneColumn, commentsColumn, installerColumn, carrierColumn,
+                speedColumn, carTypeColumn, registrationDateColumn, yearReleasedColumn, carBrandColumn);
         table.setTableMenuButtonVisible(true);
         table.setEditable(false);
 
@@ -122,7 +131,7 @@ public class ObjectModel {
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     if (item == null || empty) {
-//                        setText(item);
+                        setText(item);
                         setStyle("");
                     } else if (item.contains("Выведен")) {
                         setStyle("-fx-background-color: rgb(247,162,176)");
@@ -143,15 +152,14 @@ public class ObjectModel {
     }
 
     public void display() {
-        // New window (Stage)
+        // New window
         Stage objStage = new Stage();
-        objStage.initModality(Modality.WINDOW_MODAL);
+        objStage.initModality(Modality.APPLICATION_MODAL);
 //        objStage.setFullScreen(true);
         objStage.setTitle("Справочник объектов");
         fillTable();
-        setStatusColor(table.getColumns().get(10));
+        setStatusColor(table.getColumns().get(2));
         // Add vertical and horizontal scrollPane
-        initScrollPane();
         initRowsCounter();
         data.addListener(new ListChangeListener<ObjectTable>() {
             @Override
@@ -192,7 +200,7 @@ public class ObjectModel {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Поиск по номеру или телефону");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -218,11 +226,12 @@ public class ObjectModel {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene navBlockScene = new Scene(root, 1080, 720);
+        Scene navBlockScene = new Scene(root, 1080, 700);
         objStage.setScene(navBlockScene);
         objStage.show();
         objStage.setOnCloseRequest(event -> {
             data.clear();
+            filteredData.clear();
         });
     }
 
@@ -243,9 +252,9 @@ public class ObjectModel {
                 String lowerCaseFilter = newValue.toLowerCase();
                 if (newValue == null || newValue.isEmpty())
                     return true;
-                 else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
+                else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
                     return true;
-                 else if (String.valueOf(obj.getPhoneNumber()).contains(lowerCaseFilter))
+                else if (String.valueOf(obj.getPhoneNumber()).startsWith(lowerCaseFilter))
                     return true;
 
                 return false;
@@ -254,63 +263,31 @@ public class ObjectModel {
             sortedData.comparatorProperty().bind(table.comparatorProperty());
             table.setItems(sortedData);
             rowCounterLabel.setText("Количество записей: " + sortedData.size());
-            setStatusColor(table.getColumns().get(10));
+            setStatusColor(table.getColumns().get(2));
         });
     }
 
     public void fillTable() {
-        final String query = "SELECT o.name_ AS state, car_brand.cb_name_ AS brand, o.year_release_ AS year_," +
-                "car_type_.name_ AS type, SUBSTRING (100 + EXTRACT (DAY FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM o.last_time_)||' '" +
-                "   || SUBSTRING (100 + EXTRACT (HOUR FROM o.last_time_)FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(MINUTE FROM o.last_time_) FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(SECOND FROM o.last_time_) FROM 2 FOR 2) AS lastTime, " +
-                "o.last_speed_ AS lastspeed, routs.name_ AS rout, " +
-                "   SUBSTRING (100 + EXTRACT (DAY FROM  o.last_station_time_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM  o.last_station_time_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM  o.last_station_time_)||' '" +
-                "   || SUBSTRING (100 + EXTRACT (HOUR FROM  o.last_station_time_)FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(MINUTE FROM  o.last_station_time_) FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(SECOND FROM  o.last_station_time_) FROM 2 FOR 2) AS lastTimeStation, " +
-                "p.name_ AS carrier, providers.name_ AS installer, " +
-                "   SUBSTRING (100 + EXTRACT (DAY FROM  o.date_inserted_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM  o.date_inserted_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM  o.date_inserted_) AS registrDate," +
-                "       CASE o.obj_output_" +
-                "         WHEN 1 THEN 'Выведен'" +
-                "         ||' ('" +
-                "         ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'" +
-                "         ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'" +
-                "         ||EXTRACT(year from o.obj_output_date_)||')'" +
-                "         WHEN 0 THEN 'Активен'" +
-                "       END AS status," +
-                "       o.phone_ AS phone, o.user_comment_ AS comment " +
-                "FROM objects o " +
-                "LEFT JOIN car_brand ON o.car_brand_ = car_brand.cb_id_ " +
-                "LEFT JOIN car_type_ ON o.vehicle_type_ = car_type_.ct_id_ " +
-                "LEFT JOIN routs ON o.last_rout_ = routs.id_ " +
-                "LEFT JOIN projects p ON o.proj_id_ = p.id_ " +
-                "LEFT JOIN providers ON o.provider_ = providers.id_ ";
+        final String query = new Query().getObjectQuery();
         try (Connection connection = Connect.getConnect();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
             while (resultSet.next()) {
                 data.add(new ObjectTable(
                         resultSet.getString("state"),
-                        resultSet.getString("brand"),
-                        resultSet.getInt("year_"),
-                        resultSet.getString("type"),
-                        resultSet.getObject("lastTime"),
-                        resultSet.getShort("lastspeed"),
                         resultSet.getString("rout"),
-                        resultSet.getObject("lastTimeStation"),
-                        resultSet.getString("carrier"),
-                        resultSet.getString("installer"),
-                        resultSet.getString("registrDate"),
                         resultSet.getString("status"),
+                        resultSet.getObject("lastTime"),
+                        resultSet.getObject("lastTimeStation"),
                         resultSet.getLong("phone"),
-                        resultSet.getString("comment")
+                        resultSet.getString("comment"),
+                        resultSet.getString("installer"),
+                        resultSet.getString("carrier"),
+                        resultSet.getShort("lastspeed"),
+                        resultSet.getString("type"),
+                        resultSet.getString("registrDate"),
+                        resultSet.getInt("year_"),
+                        resultSet.getString("brand")
                 ));
 
             }
@@ -319,6 +296,43 @@ public class ObjectModel {
         }
         table.setItems(data);
     }
+
+    public void fillTable(String param) {
+        final String query = new Query().getObjectQuery() + "  WHERE o.name_ LIKE ?";
+        try (Connection connection = Connect.getConnect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);
+        ) {
+//            ResultSet resultSet = preparedStatement.executeQuery(query);
+            preparedStatement.setString(1, "%" + param + "%");
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
+//            preparedStatement.setString(2, param + "%");
+            while (resultSet.next()) {
+                data.add(new ObjectTable(
+                        resultSet.getString("state"),
+                        resultSet.getString("rout"),
+                        resultSet.getString("status"),
+                        resultSet.getObject("lastTime"),
+                        resultSet.getObject("lastTimeStation"),
+                        resultSet.getLong("phone"),
+                        resultSet.getString("comment"),
+                        resultSet.getString("installer"),
+                        resultSet.getString("carrier"),
+                        resultSet.getShort("lastspeed"),
+                        resultSet.getString("type"),
+                        resultSet.getString("registrDate"),
+                        resultSet.getInt("year_"),
+                        resultSet.getString("brand")
+                ));
+
+            }
+            resultSet.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        table.setItems(data);
+    }
+
 
     public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
         final String query = "INSERT INTO bs (name ,lat ,lon ,azmth ) VALUES (?,?,?,?)";
@@ -373,6 +387,10 @@ public class ObjectModel {
 
     public void refreshTable() {
         data.clear();
-        fillTable();
+        if (getSearchValue().isEmpty()) {
+            fillTable();
+        } else {
+            fillTable(getSearchValue());
+        }
     }
 }

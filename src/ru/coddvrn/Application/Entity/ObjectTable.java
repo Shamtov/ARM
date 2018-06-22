@@ -189,9 +189,9 @@ public class ObjectTable {
     private final SimpleLongProperty phoneNumber;
     private final SimpleStringProperty comment;
 
-    public ObjectTable(String stateNumber, String carBrand, int yearReleased, String carType, Object lastTime, int lastSpeed,
-                       String routsName, Object lastStationTime, String carrier, String installer, String dateInserted, String status,
-                       long phoneNumber, String comment) {
+    public ObjectTable(String stateNumber, String routsName, String status, Object lastTime, Object lastStationTime,
+                       long phoneNumber, String comment, String installer, String carrier, int lastSpeed, String carType,
+                       String dateInserted, int yearReleased, String carBrand) {
         this.stateNumber = new SimpleStringProperty(stateNumber);
         this.carBrand = new SimpleStringProperty(carBrand);
         this.yearReleased = new SimpleIntegerProperty(yearReleased);

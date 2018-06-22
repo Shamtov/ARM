@@ -18,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.BusStopTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
@@ -142,7 +143,7 @@ public class BusStop {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        TextField searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Найти улицу");
         searchField.setMinWidth(200);
         searchByItem(searchField);

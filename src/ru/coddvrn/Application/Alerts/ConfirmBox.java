@@ -1,5 +1,6 @@
 package ru.coddvrn.Application.Alerts;
 
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -26,7 +27,12 @@ public class ConfirmBox {
             Button noButton = new Button("Нет");
 
             yesButton.setOnAction(event -> {
-                System.exit(0);
+                try {
+                    Platform.exit();
+                }catch (IllegalStateException ignore){
+//                    NOP
+                }
+
             });
             noButton.setOnAction(event -> {
                 exitWindow.close();

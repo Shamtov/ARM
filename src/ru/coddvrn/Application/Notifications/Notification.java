@@ -1,7 +1,7 @@
 package ru.coddvrn.Application.Notifications;
 
+
 import javafx.geometry.Pos;
-import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 import org.controlsfx.control.Notifications;
 
@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 public class Notification {
 
-    public static void getConnect(SQLException except){
+    public void getConnect(SQLException except){
         Notifications.create()
                 .title("Соединение с базой данных")
                 .text("Не удаётся установить соединение"+"/n"+except)
@@ -19,7 +19,7 @@ public class Notification {
                 .position(Pos.CENTER)
                 .showError();
     }
-    public static void getSuccessAdd(){
+    public void getSuccessAdd(){
         Notifications.create()
                 .title("Добавление в базу")
                 .text("Запись успешно добавлена")
@@ -29,17 +29,17 @@ public class Notification {
                 .position(Pos.BOTTOM_RIGHT)
                 .showInformation();
     }
-    public static void getSuccessEdit(){
-        Notifications.create()
-                .title("Изменение записи")
-                .text("Запись успешно изменена")
-                .darkStyle()
-                .graphic(null)
-                .hideAfter(Duration.seconds(3.0))
-                .position(Pos.BOTTOM_RIGHT)
-                .showInformation();
+    public void getSucessEdit(){
+      Notifications.create()
+              .title("Изменение записи")
+              .text("Запись успешно изменена")
+              .graphic(null)
+              .darkStyle()
+              .hideAfter(Duration.seconds(3.0))
+              .position(Pos.BOTTOM_RIGHT)
+              .showInformation();
     }
-    public static void getSuccessDelete(){
+    public void getSuccessDelete(){
         Notifications.create()
                 .title("Удаление записи")
                 .text("Запись успешно удалена")
@@ -49,7 +49,7 @@ public class Notification {
                 .position(Pos.BOTTOM_RIGHT)
                 .showInformation();
     }
-    public static void getErrorAdd(SQLException except){
+    public void getErrorAdd(SQLException except){
         Notifications.create()
                 .title("Добавление в базу")
                 .text("Не удалось добавить запись"+"/n"+except)
@@ -59,7 +59,7 @@ public class Notification {
                 .position(Pos.BOTTOM_RIGHT)
                 .showError();
     }
-    public static void getErrorEdit(SQLException except){
+    public void getErrorEdit(SQLException except){
         Notifications.create()
                 .title("Изменение записи")
                 .text("Не удалось изменить запись"+"/n"+except)
@@ -69,7 +69,7 @@ public class Notification {
                 .position(Pos.BOTTOM_RIGHT)
                 .showError();
     }
-    public static void getErrorDelete(SQLException except){
+    public void getErrorDelete(SQLException except){
         Notifications.create()
                 .title("Удаление записи")
                 .text("Не удалось удалить запись"+"/n"+except)

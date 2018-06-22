@@ -15,9 +15,11 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.RoutesTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
@@ -31,6 +33,7 @@ import java.util.function.Predicate;
 public class Route {
     private Route() {
         initColumns();
+        initScrollPane();
     }
 
     private static Route instance;
@@ -80,6 +83,28 @@ public class Route {
         });
     }
 
+    private void setStatusColor(TableColumn statusColumn) {
+        statusColumn.setCellFactory(column -> {
+            return new TableCell<RoutesTable, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (item == null || empty) {
+//                        setText(item);
+                        setStyle("");
+                    } else if (item.contains("Не используется")) {
+                        setStyle("-fx-background-color: rgb(247,162,176)");
+                        setTextFill(Color.BLACK);
+                        setText(item);
+                    } else if (item.contains("Работает")){
+                        setStyle("-fx-background-color: rgb(146,222,156)");
+                        setTextFill(Color.BLACK);
+                        setText(item);
+                    }
+                }
+            };
+        });
+    }
     private void initRowsCounter() {
         rowCounterLabel.setText("Количество записей: " + data.size());
     }
@@ -87,11 +112,10 @@ public class Route {
     public void display() {
         // New window (Stage)
         Stage routesStage = new Stage();
-        routesStage.initModality(Modality.WINDOW_MODAL);
+        routesStage.initModality(Modality.APPLICATION_MODAL);
         routesStage.setTitle("Справочник маршрутов");
-        refreshTable();
-        // Add vertical and horizontal scrollPane
-        initScrollPane();
+        fillTable();
+        setStatusColor(table.getColumns().get(2));
         initRowsCounter();
         data.addListener(new ListChangeListener<RoutesTable>() {
             @Override
@@ -134,7 +158,7 @@ public class Route {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = new TextField();
+        TextField searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Поиск по маршруту");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -158,11 +182,12 @@ public class Route {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene routeScene = new Scene(root, 800, 800);
+        Scene routeScene = new Scene(root, 800, 600);
 
         routesStage.setScene(routeScene);
         routesStage.setOnCloseRequest(event -> {
             data.clear();
+            filteredData.clear();
         });
         routesStage.show();
     }
@@ -193,11 +218,13 @@ public class Route {
             sortedData.comparatorProperty().bind(table.comparatorProperty());
             table.setItems(sortedData);
             rowCounterLabel.setText("Количество записей: "+ sortedData.size());
+            setStatusColor(table.getColumns().get(2));
         });}
 
     public void fillTable() {
         final String query = "SELECT routs.name_,(SELECT count(*) FROM bs_route WHERE bs_route.route_id = routs.id_) AS counter, " +
-                "CASE routs.route_active_ WHEN 0 THEN 'Не используется' WHEN 1 THEN 'Работает' END AS new_active FROM routs";
+                "CASE routs.route_active_ WHEN 0 THEN 'Не используется' WHEN 1 THEN 'Работает' END AS new_active FROM routs" +
+                " ORDER BY routs.name_ ";
         try (Connection connection = Connect.getConnect();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
@@ -268,4 +295,3 @@ public class Route {
         fillTable();
     }
 }
-
