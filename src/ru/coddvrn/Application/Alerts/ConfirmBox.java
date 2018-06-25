@@ -40,7 +40,7 @@ public class ConfirmBox {
             hbox.setAlignment(Pos.CENTER);
             vbox.setAlignment(Pos.CENTER);
 
-            Scene scene = new Scene (vbox,400,150);
+            Scene scene = new Scene (vbox,350,100);
             exitWindow.setScene(scene);
             exitWindow.showAndWait();
         }

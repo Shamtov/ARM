@@ -16,7 +16,7 @@ import javafx.stage.Stage;
 import org.controlsfx.control.textfield.AutoCompletionBinding;
 import org.controlsfx.control.textfield.TextFields;
 import ru.coddvrn.Application.Alerts.FormsAlerts;
-import ru.coddvrn.Application.Repository.ListRep;
+import ru.coddvrn.Application.Repository.List;
 import ru.coddvrn.Application.Scene.NavigationBlock;
 import ru.coddvrn.Application.Validate.ValidateFields;
 
@@ -37,7 +37,7 @@ public class SubNavBlock {
     }
 
     private TextField blockNumberText = new TextField();
-    private ComboBox typeBox = new ComboBox(new ListRep().getTypeofBlocks());
+    private ComboBox typeBox = new ComboBox(new List().getTypeofBlocks());
     private TextField stateNumberText = new TextField();
     private TextField commentText = new TextField();
 
@@ -72,13 +72,13 @@ public class SubNavBlock {
         gridPane.add(typeLabel, 0, 2);
         gridPane.add(typeBox, 1, 2);
 
-        Label stateLabel = new Label("Гос номер *");
+        Label stateLabel = new Label("Гос. номер *");
         stateLabel.setFont(new Font("SanSerif", 14));
         stateNumberText.setPromptText("а000аа36");
         stateNumberText.setMinWidth(150);
         GridPane.setHalignment(stateLabel, HPos.CENTER);
         stateNumberText = TextFields.createClearableTextField();
-        TextFields.bindAutoCompletion(stateNumberText, new ListRep().getPossibleStates());
+        TextFields.bindAutoCompletion(stateNumberText, new List().getPossibleStates());
         gridPane.add(stateLabel, 0, 3);
         gridPane.add(stateNumberText, 1, 3);
 

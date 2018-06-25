@@ -5,10 +5,12 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -22,6 +24,8 @@ import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.ObjectTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
+import ru.coddvrn.Application.Repository.Query;
+import ru.coddvrn.Application.Scene.SubScene.SubNavBlock;
 import ru.coddvrn.Application.Scene.SubScene.SubObject;
 
 import java.sql.*;
@@ -41,6 +45,12 @@ public class ObjectModel {
         if (instance == null)
             instance = new ObjectModel();
         return instance;
+    }
+
+    private TextField searchField;
+
+    public String getSearchValue() {
+        return searchField.getText();
     }
 
     // Create data Collection
@@ -114,7 +124,22 @@ public class ObjectModel {
                 speedColumn, carTypeColumn, registrationDateColumn, yearReleasedColumn, carBrandColumn);
         table.setTableMenuButtonVisible(true);
         table.setEditable(false);
-
+        table.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (event.getClickCount() > 1) {
+                    SubObject.getInstance().display(table.getSelectionModel().getSelectedItem().getStateNumber(),
+                            table.getSelectionModel().getSelectedItem().getCarrier(),
+                            table.getSelectionModel().getSelectedItem().getRoutsName(),
+                            table.getSelectionModel().getSelectedItem().getInstaller(),
+                            table.getSelectionModel().getSelectedItem().getCarBrand(),
+                            table.getSelectionModel().getSelectedItem().getPhoneNumber(),
+                            table.getSelectionModel().getSelectedItem().getYearReleased(),
+                            table.getSelectionModel().getSelectedItem().getComment()
+                    );
+                }
+            }
+        });
     }
 
     private void setStatusColor(TableColumn statusColumn) {
@@ -124,7 +149,7 @@ public class ObjectModel {
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     if (item == null || empty) {
-//                        setText(item);
+                        setText(item);
                         setStyle("");
                     } else if (item.contains("Выведен")) {
                         setStyle("-fx-background-color: rgb(247,162,176)");
@@ -166,11 +191,15 @@ public class ObjectModel {
 
         Button edit = new Button("Изменить...", IconsLoader.getInstance().getEditIcon());
         edit.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-//        edit.setOnAction(event -> SubObject.getInstance().display(table.getSelectionModel().getSelectedItem().getId(),
-//                table.getSelectionModel().getSelectedItem().getName(),
-//                table.getSelectionModel().getSelectedItem().getLat(),
-//                table.getSelectionModel().getSelectedItem().getLon(),
-//                table.getSelectionModel().getSelectedItem().getAzmth()));
+        edit.setOnAction(event -> SubObject.getInstance().display(table.getSelectionModel().getSelectedItem().getStateNumber(),
+                table.getSelectionModel().getSelectedItem().getCarrier(),
+                table.getSelectionModel().getSelectedItem().getRoutsName(),
+                table.getSelectionModel().getSelectedItem().getInstaller(),
+                table.getSelectionModel().getSelectedItem().getCarBrand(),
+                table.getSelectionModel().getSelectedItem().getPhoneNumber(),
+                table.getSelectionModel().getSelectedItem().getYearReleased(),
+                table.getSelectionModel().getSelectedItem().getComment()
+        ));
 
         Button delete = new Button("Удалить", IconsLoader.getInstance().getDeleteIcon());
         delete.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
@@ -193,8 +222,7 @@ public class ObjectModel {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = TextFields.createClearableTextField();
-        ;
+        searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Поиск по номеру или телефону");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -220,7 +248,7 @@ public class ObjectModel {
         root.setCenter(stackPane);
         root.setBottom(rowCounterHbox);
         // Set scene
-        Scene navBlockScene = new Scene(root, 1080, 600);
+        Scene navBlockScene = new Scene(root, 1080, 700);
         objStage.setScene(navBlockScene);
         objStage.show();
         objStage.setOnCloseRequest(event -> {
@@ -248,7 +276,7 @@ public class ObjectModel {
                     return true;
                 else if (obj.getStateNumber().toLowerCase().contains(lowerCaseFilter))
                     return true;
-                else if (String.valueOf(obj.getPhoneNumber()).contentEquals(lowerCaseFilter))
+                else if (String.valueOf(obj.getPhoneNumber()).startsWith(lowerCaseFilter))
                     return true;
 
                 return false;
@@ -257,44 +285,12 @@ public class ObjectModel {
             sortedData.comparatorProperty().bind(table.comparatorProperty());
             table.setItems(sortedData);
             rowCounterLabel.setText("Количество записей: " + sortedData.size());
-            setStatusColor(table.getColumns().get(10));
+            setStatusColor(table.getColumns().get(2));
         });
     }
 
     public void fillTable() {
-        final String query = "SELECT o.name_ AS state, car_brand.cb_name_ AS brand, o.year_release_ AS year_," +
-                "car_type_.name_ AS type, SUBSTRING (100 + EXTRACT (DAY FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM o.last_time_)||' '" +
-                "   || SUBSTRING (100 + EXTRACT (HOUR FROM o.last_time_)FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(MINUTE FROM o.last_time_) FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(SECOND FROM o.last_time_) FROM 2 FOR 2) AS lastTime, " +
-                "o.last_speed_ AS lastspeed, routs.name_ AS rout, " +
-                "   SUBSTRING (100 + EXTRACT (DAY FROM  o.last_station_time_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM  o.last_station_time_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM  o.last_station_time_)||' '" +
-                "   || SUBSTRING (100 + EXTRACT (HOUR FROM  o.last_station_time_)FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(MINUTE FROM  o.last_station_time_) FROM 2 FOR 2)||':'" +
-                "   || SUBSTRING (100 + EXTRACT(SECOND FROM  o.last_station_time_) FROM 2 FOR 2) AS lastTimeStation, " +
-                "p.name_ AS carrier, providers.name_ AS installer, " +
-                "   SUBSTRING (100 + EXTRACT (DAY FROM  o.date_inserted_) FROM 2 FOR 2)||'.'" +
-                "   || SUBSTRING (100 + EXTRACT(MONTH FROM  o.date_inserted_) FROM 2 FOR 2)||'.'" +
-                "   || EXTRACT (YEAR FROM  o.date_inserted_) AS registrDate," +
-                "       CASE o.obj_output_" +
-                "         WHEN 1 THEN 'Выведен'" +
-                "         ||' ('" +
-                "         ||EXTRACT (DAY FROM o.obj_output_date_)|| '.'" +
-                "         ||EXTRACT(MONTH FROM o.obj_output_date_)||'.'" +
-                "         ||EXTRACT(year from o.obj_output_date_)||')'" +
-                "         WHEN 0 THEN 'Активен'" +
-                "       END AS status," +
-                "       o.phone_ AS phone, o.user_comment_ AS comment " +
-                "FROM objects o " +
-                "LEFT JOIN car_brand ON o.car_brand_ = car_brand.cb_id_ " +
-                "LEFT JOIN car_type_ ON o.vehicle_type_ = car_type_.ct_id_ " +
-                "LEFT JOIN routs ON o.last_rout_ = routs.id_ " +
-                "LEFT JOIN projects p ON o.proj_id_ = p.id_ " +
-                "LEFT JOIN providers ON o.provider_ = providers.id_ ";
+        final String query = new Query().getObjectQuery();
         try (Connection connection = Connect.getConnect();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
@@ -323,18 +319,70 @@ public class ObjectModel {
         table.setItems(data);
     }
 
+    public void fillTable(String param) {
+        final String query = new Query().getObjectQuery() + "  WHERE o.name_ LIKE ?";
+        try (Connection connection = Connect.getConnect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);) {
+            preparedStatement.setString(1, "%" + param + "%");
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
+//            preparedStatement.setString(2, param + "%");
+            while (resultSet.next()) {
+                data.add(new ObjectTable(
+                        resultSet.getString("state"),
+                        resultSet.getString("rout"),
+                        resultSet.getString("status"),
+                        resultSet.getObject("lastTime"),
+                        resultSet.getObject("lastTimeStation"),
+                        resultSet.getLong("phone"),
+                        resultSet.getString("comment"),
+                        resultSet.getString("installer"),
+                        resultSet.getString("carrier"),
+                        resultSet.getShort("lastspeed"),
+                        resultSet.getString("type"),
+                        resultSet.getString("registrDate"),
+                        resultSet.getInt("year_"),
+                        resultSet.getString("brand")
+                ));
 
-    public void addData(TextField nameText, TextField lonText, TextField latText, TextField azmthText) {
-        final String query = "INSERT INTO bs (name ,lat ,lon ,azmth ) VALUES (?,?,?,?)";
+            }
+            resultSet.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        table.setItems(data);
+    }
+
+
+    public void addData(String stateNum, String carrier, String rout, String installer,
+                        String carBrand, String phone, String year, String comment) {
+        final String query = "INSERT INTO objects (name_, obj_id_, proj_id_, last_rout_, provider_, vehicle_type_," +
+                "car_brand_, phone_, year_release_, user_comment_)  VALUES (?," +
+                "(SELECT MAX(o.obj_id_)+1 FROM objects o WHERE o.proj_id_ = (SELECT pr.id_ FROM projects pr WHERE pr.name_ = ?))," +
+                "(SELECT pr.id_ FROM projects pr WHERE pr.name_ = ?)," +
+                "(SELECT r.id_ FROM routs r WHERE r.name_ = ?)," +
+                "(SELECT pv.id_ FROM providers pv WHERE pv.name_ = ?)," +
+                "(SELECT cb.car_type_id_ FROM car_brand cb WHERE cb.cb_name_ = ?)," +
+                "(SELECT cb.cb_id_ FROM car_brand cb WHERE cb.cb_name_ = ?)," +
+                "?," +
+                "?," +
+                "?" +
+                ")";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, nameText.getText());
-            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
-            preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
+            preparedStatement.setString(1, stateNum);
+            preparedStatement.setString(2, carrier);
+            preparedStatement.setString(3, carrier);
+            preparedStatement.setString(4, rout);
+            preparedStatement.setString(5, installer);
+            preparedStatement.setString(6, carBrand);
+            preparedStatement.setString(7, carBrand);
+            preparedStatement.setString(8, phone);
+            preparedStatement.setString(9, year);
+            preparedStatement.setString(10, comment);
             preparedStatement.execute();
             new Notification().getSuccessAdd();
-//            SubObject.getInstance().clearFields();
+            SubObject.getInstance().clearFields();
             refreshTable();
         } catch (SQLException exception) {
             exception.printStackTrace();
@@ -342,17 +390,32 @@ public class ObjectModel {
         }
     }
 
-    public void updateData(TextField nameText, TextField lonText, TextField latText, TextField azmthText, int idValue) {
-        final String query = "UPDATE bs SET name = ? ,lat = ?,lon = ? ,azmth = ? WHERE id = ?";
+    public void updateData(String stateNum, String carrier, String rout, String installer,
+                           String carBrand, String phone, String year, String comment, String oldState) {
+        final String query = "UPDATE objects SET name_ = ?," +
+                "proj_id_ = (SELECT p.id_ FROM projects p WHERE p.name_ = ?)," +
+                "last_rout_ = (SELECT r.id_ FROM routs r WHERE r.name_ = ?)," +
+                "provider_ = (SELECT pr.id_ FROM providers pr WHERE pr.name_ = ?)," +
+                "vehicle_type_ = (SELECT cb.car_type_id_ FROM car_brand cb WHERE cb.cb_name_ = ?)," +
+                "car_brand_ = (SELECT cb.cb_id_ FROM car_brand cb WHERE cb.cb_name_ = ?)," +
+                "phone_ = ?," +
+                "year_release_ = ?," +
+                "user_comment_ = ?" +
+                "WHERE name_ = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            preparedStatement.setString(1, nameText.getText());
-            preparedStatement.setDouble(2, Double.parseDouble(latText.getText()));
-            preparedStatement.setDouble(3, Double.parseDouble(lonText.getText()));
-            preparedStatement.setInt(4, Integer.parseInt(azmthText.getText()));
-            preparedStatement.setInt(5, idValue);
+            preparedStatement.setString(1, stateNum);
+            preparedStatement.setString(2, carrier);
+            preparedStatement.setString(3, rout);
+            preparedStatement.setString(4, installer);
+            preparedStatement.setString(5, carBrand);
+            preparedStatement.setString(6, carBrand);
+            preparedStatement.setString(7, phone);
+            preparedStatement.setString(8, year);
+            preparedStatement.setString(9, comment);
+            preparedStatement.setString(10, oldState);
             preparedStatement.execute();
-//            SubObject.getInstance().getStage().close();
+            SubObject.getInstance().getStage().close();
             refreshTable();
             new Notification().getSuccessEdit();
         } catch (SQLException exception) {
@@ -362,7 +425,7 @@ public class ObjectModel {
     }
 
     private void deleteData(String stateName) {
-        final String query = "DELETE FROM bs WHERE id = ?";
+        final String query = "DELETE FROM objects WHERE name_ = ?";
         try (Connection connection = Connect.getConnect();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, stateName);
@@ -376,12 +439,11 @@ public class ObjectModel {
     }
 
     public void refreshTable() {
-        /* if (filteredData.size() == 0) {*/
         data.clear();
-        fillTable();
-       /* } else {
-            filteredData.clear();
-            fillTable(filteredData);
-        }*/
+        if (getSearchValue().isEmpty()) {
+            fillTable();
+        } else {
+            fillTable(getSearchValue());
+        }
     }
 }

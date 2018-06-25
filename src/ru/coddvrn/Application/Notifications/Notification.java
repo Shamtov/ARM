@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 public class Notification {
 
-    public static void getConnect(SQLException except){
+    public static void getErrorConnect(SQLException except){
         Notifications.create()
                 .title("Соединение с базой данных")
                 .text("Не удаётся установить соединение"+"/n"+except)

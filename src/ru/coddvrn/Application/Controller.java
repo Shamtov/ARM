@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -21,10 +22,7 @@ import ru.coddvrn.Application.Notifications.Notification;
 import ru.coddvrn.Application.Scene.MainMenu;
 import ru.coddvrn.Application.Validate.ValidateFields;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class Controller extends Application {
     private TextField userText = new TextField();
@@ -32,6 +30,7 @@ public class Controller extends Application {
 
     @Override
     public void start(Stage stage) {
+
         Label userLabel = new Label("Логин");
         userLabel.setFont(new Font("SanSerif", 14));
         Label passLabel = new Label("Пароль");
@@ -75,7 +74,7 @@ public class Controller extends Application {
         Scene scene = new Scene(root, 270, 150);
         stage.setTitle("Вход в систему");
         scene.getStylesheets().add("ru/coddvrn/Application/res/Style/Login.css");
-//        stage.getIcons().add(new Image("ru/coddvrn/Application/res/icons/codd.png"));
+        stage.getIcons().add(new Image("ru/coddvrn/Application/res/icons/Logo.png"));
         stage.setScene(scene);
 
         scene.setOnKeyPressed(keyEvent -> {

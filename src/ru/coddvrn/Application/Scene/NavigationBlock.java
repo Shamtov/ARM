@@ -23,6 +23,7 @@ import ru.coddvrn.Application.Connection.Connect;
 import ru.coddvrn.Application.Entity.NavigationBlockTable;
 import ru.coddvrn.Application.Icons.IconsLoader;
 import ru.coddvrn.Application.Notifications.Notification;
+import ru.coddvrn.Application.Repository.Query;
 import ru.coddvrn.Application.Scene.SubScene.SubNavBlock;
 
 import java.sql.*;
@@ -50,6 +51,7 @@ public class NavigationBlock {
     private TableView<NavigationBlockTable> table = new TableView<>();
     private FilteredList<NavigationBlockTable> filteredData = new FilteredList<>(data, e -> true);
     private Label rowCounterLabel = new Label();
+    private TextField searchField;
 
     private void initColumns() {
         // Create table columns
@@ -152,7 +154,7 @@ public class NavigationBlock {
 
         rowCounterLabel.setFont(new Font("Arial", 14));
 
-        TextField searchField = TextFields.createClearableTextField();
+        searchField = TextFields.createClearableTextField();
         searchField.setPromptText("Поиск по блоку или номеру");
         searchField.setMinWidth(200);
         searchByItem(searchField);
@@ -219,24 +221,7 @@ public class NavigationBlock {
     }
 
     public void fillTable() {
-        final String query = "SELECT g.block_number AS block, b.bt_name_ AS type, o.name_ AS state," +
-                "o.phone_ AS phone, SUBSTRING (100 + EXTRACT (DAY FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "                 || SUBSTRING (100 + EXTRACT(MONTH FROM o.last_time_) FROM 2 FOR 2)||'.'" +
-                "                  || EXTRACT (YEAR FROM o.last_time_)||' '" +
-                "                  || SUBSTRING (100 + EXTRACT (HOUR FROM o.last_time_)FROM 2 FOR 2)||':'" +
-                "                  || SUBSTRING (100 + EXTRACT(MINUTE FROM o.last_time_) FROM 2 FOR 2)||':'" +
-                "                  || SUBSTRING (100 + EXTRACT(SECOND FROM o.last_time_) FROM 2 FOR 2) AS time_ ," +
-                "p.name_ AS pere, providers.name_ AS prov," +
-                "o.user_comment_ AS comm " +
-                "FROM granits g " +
-                "LEFT JOIN block_types b " +
-                "ON g.block_type = b.bt_id_ " +
-                "LEFT JOIN  objects o " +
-                "ON g.oids_ = o.ids_ " +
-                "LEFT JOIN projects p " +
-                "ON o.proj_id_= p.id_ " +
-                "LEFT JOIN providers " +
-                "ON o.provider_= providers.id_";
+        final String query = new Query().getBlockQuery();
         try (Connection connection = Connect.getConnect();
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(query)) {
@@ -251,12 +236,38 @@ public class NavigationBlock {
                         resultSet.getString("prov"),
                         resultSet.getString("comm")
                 ));
-
             }
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
 
+        table.setItems(data);
+    }
+
+    public void fillTable(String param) {
+        final String query = new Query().getBlockQuery() + " WHERE block_number LIKE ? or o.name_ LIKE ?";
+        try (Connection connection = Connect.getConnect();
+             PreparedStatement preparedStatement = connection.prepareStatement(query);) {
+            preparedStatement.setString(1, "%" + param + "%");
+            preparedStatement.setString(2, "%" + param + "%");
+            preparedStatement.execute();
+            ResultSet resultSet = preparedStatement.getResultSet();
+            while (resultSet.next()) {
+                data.add(new NavigationBlockTable(
+                        resultSet.getInt("block"),
+                        resultSet.getString("type"),
+                        resultSet.getString("state"),
+                        resultSet.getLong("phone"),
+                        resultSet.getObject("time_"),
+                        resultSet.getString("pere"),
+                        resultSet.getString("prov"),
+                        resultSet.getString("comm")
+                ));
+            }
+            resultSet.close();
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
         table.setItems(data);
     }
 
@@ -293,8 +304,8 @@ public class NavigationBlock {
             preparedStatement.setString(3, stateNumInput);
             preparedStatement.setInt(4, oldNumber);
             preparedStatement.execute();
-            preparedStatement1.setString(1,comment);
-            preparedStatement1.setString(2,stateNumInput);
+            preparedStatement1.setString(1, comment);
+            preparedStatement1.setString(2, stateNumInput);
             preparedStatement1.execute();
             SubNavBlock.getInstance().getStage().close();
             refreshTable();
@@ -321,7 +332,14 @@ public class NavigationBlock {
 
     public void refreshTable() {
         data.clear();
-        fillTable();
+        if (getSearchValue().isEmpty()) {
+            fillTable();
+        } else {
+            fillTable(getSearchValue());
+        }
+    }
+    public String getSearchValue() {
+        return searchField.getText();
     }
 }
 
