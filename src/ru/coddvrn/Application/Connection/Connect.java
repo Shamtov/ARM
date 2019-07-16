@@ -15,7 +15,6 @@ public class Connect {
 
     public static Connection getConnect() {
 
-        Connection con = null;
         try {
             Class.forName("org.firebirdsql.jdbc.FBDriver");
             con = DriverManager.getConnection(URL_STRING, USER, PASSWORD);
