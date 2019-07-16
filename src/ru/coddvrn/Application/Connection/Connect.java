@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class Connect {
-    private final static String USER = "SYSDBA";
+    private final static String USER = "5";
     private final static String PASSWORD = "masterkey";
     private final static String URL = "";
     private final static String PORT = "";
@@ -18,7 +18,7 @@ public class Connect {
         try {
             Class.forName("org.firebirdsql.jdbc.FBDriver");
             con = DriverManager.getConnection(URL_STRING, USER, PASSWORD);
-//            con.setAutoCommit(true);
+
         } catch (SQLException except) {
             except.printStackTrace();
             new Notification().getConnect(except);
