@@ -18,7 +18,7 @@ public class Connect {
         try {
             Class.forName("org.firebirdsql.jdbc.FBDriver");
             con = DriverManager.getConnection(URL_STRING, USER, PASSWORD);
-//            con.setAutoCommit(true);
+
         } catch (SQLException except) {
             except.printStackTrace();
             new Notification().getConnect(except);
